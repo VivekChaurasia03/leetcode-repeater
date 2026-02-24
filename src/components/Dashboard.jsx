@@ -16,6 +16,7 @@ function Dashboard({ user, onLogout }) {
   const [view, setView] = useState('active')
   const [showAddModal, setShowAddModal] = useState(false)
   const [editTarget, setEditTarget] = useState(null)
+  const [draggingId, setDraggingId] = useState(null)
 
   if (loading) {
     return (
@@ -81,6 +82,15 @@ function Dashboard({ user, onLogout }) {
   const handleMarkMastered = (questionId) => markMastered(user.name, questionId)
   const handleUnmarkMastered = (questionId) => unmarkMastered(user.name, questionId)
   const handleDelete = (questionId) => deleteQuestion(user.name, questionId)
+
+  const handleDragStart = (questionId) => setDraggingId(questionId)
+  const handleDragEnd   = ()           => setDraggingId(null)
+  const handleDropOnDate = async (targetDate, questionId) => {
+    setDraggingId(null)
+    const question = userData.questions.find(q => q.id === questionId)
+    if (!question || question.scheduledDate === targetDate) return
+    await rescheduleQuestion(user.name, questionId, targetDate)
+  }
 
   const firstName = user.name.split(' ')[0]
 
@@ -157,6 +167,10 @@ function Dashboard({ user, onLogout }) {
                     dateType={getDateType(date)}
                     questions={questionsByDate[date]}
                     defaultOpen={getDateType(date) !== 'future'}
+                    draggingId={draggingId}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    onDropQuestion={(qId) => handleDropOnDate(date, qId)}
                     onEdit={(q) => setEditTarget({ question: q, mode: 'edit' })}
                     onReschedule={(q) => setEditTarget({ question: q, mode: 'reschedule' })}
                     onMarkMastered={handleMarkMastered}

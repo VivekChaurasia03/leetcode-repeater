@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './Modal.css'
+import DatePicker from './DatePicker'
 
 function AddModal({ onClose, onSubmit }) {
   const today = new Date().toISOString().split('T')[0]
@@ -78,13 +79,7 @@ function AddModal({ onClose, onSubmit }) {
 
           <div className="form-group">
             <label htmlFor="q-date">Schedule For</label>
-            <input
-              id="q-date"
-              type="date"
-              value={date}
-              onChange={e => setDate(e.target.value)}
-              required
-            />
+            <DatePicker id="q-date" value={date} onChange={setDate} />
           </div>
 
           {error && <p className="form-error">{error}</p>}

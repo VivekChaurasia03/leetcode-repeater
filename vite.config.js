@@ -133,6 +133,55 @@ function apiPlugin() {
         })
       })
 
+      // ── /api/delete-user  (remove a user from data.json) ──
+      server.middlewares.use('/api/delete-user', (req, res) => {
+        res.setHeader('Content-Type', 'application/json')
+        if (req.method !== 'POST') {
+          res.statusCode = 405
+          res.end(JSON.stringify({ error: 'Method not allowed' }))
+          return
+        }
+        let body = ''
+        req.on('data', chunk => { body += chunk })
+        req.on('end', () => {
+          try {
+            const { name, adminSecret } = JSON.parse(body)
+            const expectedSecret = process.env.ADMIN_SECRET || 'admin'
+
+            if (adminSecret !== expectedSecret) {
+              res.statusCode = 401
+              res.end(JSON.stringify({ error: 'Invalid admin secret.' }))
+              return
+            }
+
+            const trimmedName = name?.trim()
+            if (!trimmedName) {
+              res.statusCode = 400
+              res.end(JSON.stringify({ error: 'Name is required.' }))
+              return
+            }
+
+            const data = JSON.parse(readFileSync(DATA_FILE, 'utf-8'))
+            const before = data.users.length
+            data.users = data.users.filter(
+              u => u.name.toLowerCase() !== trimmedName.toLowerCase()
+            )
+
+            if (data.users.length === before) {
+              res.statusCode = 404
+              res.end(JSON.stringify({ error: `User "${trimmedName}" not found.` }))
+              return
+            }
+
+            writeFileSync(DATA_FILE, JSON.stringify(data, null, 2))
+            res.end(JSON.stringify({ success: true, name: trimmedName }))
+          } catch {
+            res.statusCode = 500
+            res.end(JSON.stringify({ error: 'Server error' }))
+          }
+        })
+      })
+
       // ── /api/data  (read / write data.json) ──
       server.middlewares.use('/api/data', (req, res, next) => {
         res.setHeader('Content-Type', 'application/json')

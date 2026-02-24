@@ -1,6 +1,6 @@
 import './QuestionCard.css'
 
-function QuestionCard({ question, onEdit, onReschedule, onMarkMastered, onDelete }) {
+function QuestionCard({ question, isDragging, onDragStart, onDragEnd, onEdit, onReschedule, onMarkMastered, onDelete }) {
   const url = question.slug
     ? `https://leetcode.com/problems/${question.slug}/`
     : `https://leetcode.com/problemset/?search=${question.number}`
@@ -8,7 +8,17 @@ function QuestionCard({ question, onEdit, onReschedule, onMarkMastered, onDelete
   const diff = question.difficulty?.toLowerCase()
 
   return (
-    <div className="question-card">
+    <div
+      className={`question-card${isDragging ? ' question-card--dragging' : ''}`}
+      draggable
+      onDragStart={e => {
+        e.dataTransfer.setData('text/plain', question.id)
+        e.dataTransfer.effectAllowed = 'move'
+        onDragStart(question.id)
+      }}
+      onDragEnd={onDragEnd}
+    >
+      <div className="drag-handle" aria-hidden="true"><DragHandleIcon /></div>
       <div className="question-card-left">
         <a
           href={url}
@@ -71,6 +81,16 @@ function QuestionCard({ question, onEdit, onReschedule, onMarkMastered, onDelete
 }
 
 /* ── Inline SVG icons ───────────────────────────── */
+
+function DragHandleIcon() {
+  return (
+    <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor">
+      <circle cx="2.5" cy="3"  r="1.5" /><circle cx="7.5" cy="3"  r="1.5" />
+      <circle cx="2.5" cy="8"  r="1.5" /><circle cx="7.5" cy="8"  r="1.5" />
+      <circle cx="2.5" cy="13" r="1.5" /><circle cx="7.5" cy="13" r="1.5" />
+    </svg>
+  )
+}
 
 function ExternalLinkIcon() {
   return (

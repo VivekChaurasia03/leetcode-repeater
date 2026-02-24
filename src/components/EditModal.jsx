@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './Modal.css'
+import DatePicker from './DatePicker'
 
 function EditModal({ question, mode, onClose, onEdit, onReschedule }) {
   const [number, setNumber] = useState(String(question.number))
@@ -54,14 +55,7 @@ function EditModal({ question, mode, onClose, onEdit, onReschedule }) {
           ) : (
             <div className="form-group">
               <label htmlFor="edit-date">New Date</label>
-              <input
-                id="edit-date"
-                type="date"
-                value={date}
-                onChange={e => setDate(e.target.value)}
-                autoFocus
-                required
-              />
+              <DatePicker id="edit-date" value={date} onChange={setDate} />
             </div>
           )}
 

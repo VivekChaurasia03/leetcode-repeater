@@ -1,12 +1,41 @@
 .question-card {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 0.625rem 0.625rem 0.625rem 0.75rem;
   border-radius: 6px;
   background: var(--bg-primary);
-  transition: background 0.15s;
+  transition: background 0.15s, opacity 0.15s;
   gap: 0.5rem;
+  cursor: grab;
+  justify-content: space-between;
+}
+
+/* ── Drag handle ──────────────────────────────────── */
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  opacity: 0.35;
+  transition: opacity 0.15s;
+  cursor: grab;
+  padding-right: 0.5rem;
+}
+
+.question-card:hover .drag-handle {
+  opacity: 0.65;
+}
+
+/* ── While dragging ───────────────────────────────── */
+
+.question-card--dragging {
+  opacity: 0.35;
+  cursor: grabbing;
+}
+
+.question-card--dragging .drag-handle {
+  opacity: 0;
 }
 
 .question-card:hover {
@@ -21,6 +50,7 @@
   align-items: flex-start;
   min-width: 0;
   gap: 0.15rem;
+  flex: 1 1 auto;
 }
 
 .question-number {
@@ -72,6 +102,7 @@
   align-items: center;
   gap: 0.125rem;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .action-btn {

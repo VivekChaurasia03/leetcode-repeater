@@ -3,7 +3,22 @@
   border: 1px solid var(--border);
   background: var(--bg-secondary);
   overflow: hidden;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+/* ── Drag-over highlight ──────────────────────────── */
+
+.date-section--dragover {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+}
+
+.date-section--dragover .date-section-header {
+  background: rgba(245, 158, 11, 0.07);
+}
+
+.date-section--dragover .date-section-label {
+  color: var(--accent) !important;
 }
 
 .date-section--overdue {

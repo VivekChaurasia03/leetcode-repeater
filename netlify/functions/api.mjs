@@ -3,10 +3,11 @@
  * Replaces the Vite plugin middleware for production on Netlify.
  *
  * Routes:
- *   GET  /api/data          – read user data from Blobs
- *   POST /api/data          – write user data to Blobs
- *   GET  /api/problem/:num  – proxy LeetCode GraphQL (no CORS)
- *   POST /api/add-user      – add a new user (requires ADMIN_SECRET)
+ *   GET  /api/data           – read user data from Blobs
+ *   POST /api/data           – write user data to Blobs
+ *   GET  /api/problem/:num   – proxy LeetCode GraphQL (no CORS)
+ *   POST /api/add-user       – add a new user (requires ADMIN_SECRET)
+ *   POST /api/delete-user    – remove a user and all their data (requires ADMIN_SECRET)
  */
 
 import { getStore } from '@netlify/blobs'
@@ -21,14 +22,8 @@ const LC_QUERY = `query($filters: QuestionListFilterInput) {
 }`
 
 // ── Seed data (used when Blobs are empty on first deploy) ───────────────────
-// Users can log in immediately; questions start empty and are added via the app.
 
-const SEED_DATA = {
-  users: [
-    { name: 'Vivek Chaurasia', passcode: 1234, questions: [] },
-    { name: 'Syed Affan',      passcode: 1234, questions: [] },
-  ],
-}
+const SEED_DATA = { users: [] }
 
 // ── Helper ──────────────────────────────────────────────────────────────────
 
@@ -133,6 +128,32 @@ export default async function handler(req) {
     data.users.push({ name: trimmedName, passcode: pc, questions: [] })
     await store.set('main', JSON.stringify(data))
 
+    return json({ success: true, name: trimmedName })
+  }
+
+  // ── POST /api/delete-user ──────────────────────────────────────────────────
+  if (resource === 'delete-user' && req.method === 'POST') {
+    const { name, adminSecret } = await req.json()
+
+    const expectedSecret = process.env.ADMIN_SECRET
+    if (!expectedSecret || adminSecret !== expectedSecret) {
+      return json({ error: 'Invalid admin secret.' }, 401)
+    }
+
+    const trimmedName = name?.trim()
+    if (!trimmedName) {
+      return json({ error: 'Name is required.' }, 400)
+    }
+
+    const data = (await store.get('main', { type: 'json' })) ?? { ...SEED_DATA }
+    const before = data.users.length
+    data.users = data.users.filter(u => u.name.toLowerCase() !== trimmedName.toLowerCase())
+
+    if (data.users.length === before) {
+      return json({ error: `User "${trimmedName}" not found.` }, 404)
+    }
+
+    await store.set('main', JSON.stringify(data))
     return json({ success: true, name: trimmedName })
   }
 

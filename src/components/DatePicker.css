@@ -1,0 +1,199 @@
+/* ── Trigger button ─────────────────────────────────── */
+
+.dp-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.dp-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.dp-trigger:hover,
+.dp-trigger:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.dp-trigger--empty {
+  color: var(--text-secondary);
+}
+
+.dp-cal-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.dp-trigger > span {
+  flex: 1;
+}
+
+.dp-chevron {
+  width: 10px;
+  height: 7px;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  transition: color 0.15s;
+}
+
+.dp-trigger:hover .dp-chevron,
+.dp-trigger:focus-visible .dp-chevron {
+  color: var(--accent);
+}
+
+/* ── Popover ─────────────────────────────────────────── */
+
+.dp-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 300;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.55);
+  padding: 1rem;
+  width: 280px;
+  animation: dp-in 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dp-popover--up {
+  top: auto;
+  bottom: calc(100% + 6px);
+  animation: dp-in-up 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dp-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+@keyframes dp-in-up {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+
+/* ── Header ──────────────────────────────────────────── */
+
+.dp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.875rem;
+}
+
+.dp-month-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+  user-select: none;
+}
+
+.dp-nav {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.dp-nav:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Weekday row ─────────────────────────────────────── */
+
+.dp-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 4px;
+}
+
+.dp-weekdays span {
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0 0.4rem;
+  user-select: none;
+}
+
+/* ── Day grid ────────────────────────────────────────── */
+
+.dp-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.dp-day {
+  aspect-ratio: 1;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+  user-select: none;
+}
+
+.dp-day:hover:not(.dp-day--selected):not(.dp-day--other) {
+  background: var(--bg-tertiary);
+  border-color: var(--border);
+}
+
+.dp-day--other {
+  color: var(--text-secondary);
+  opacity: 0.35;
+  cursor: default;
+}
+
+.dp-day--today:not(.dp-day--selected) {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.dp-day--selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.dp-day--selected:hover {
+  background: #d97706;
+  border-color: #d97706;
+}
