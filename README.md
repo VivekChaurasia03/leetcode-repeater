@@ -29,7 +29,7 @@ Data is read from and written to `data.json` in the project root via a Vite serv
 | Name | Passcode |
 |------|----------|
 | Vivek Chaurasia | 1234 |
-| Syed Affan | 1234 |
+| Jack Jill | 1234 |
 
 ---
 
