@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import './Modal.css'
-import DatePicker from './DatePicker'
+import DatePicker from '../common/DatePicker'
 
 function AddModal({ onClose, onSubmit }) {
   const today = new Date().toISOString().split('T')[0]

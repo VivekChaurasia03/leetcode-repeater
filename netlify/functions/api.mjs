@@ -114,9 +114,8 @@ export default async function handler(req) {
       return json({ error: 'Name is required.' }, 400)
     }
 
-    const pc = parseInt(passcode, 10)
-    if (!pc || String(pc).length !== 4) {
-      return json({ error: 'Passcode must be exactly 4 digits.' }, 400)
+    if (typeof passcode !== 'string' || passcode.length !== 4 || !/^\d{4}$/.test(passcode)) {
+      return json({ error: 'Passcode must be exactly digits.' }, 400)
     }
 
     const data = (await store.get('main', { type: 'json' })) ?? { ...SEED_DATA }
@@ -125,7 +124,7 @@ export default async function handler(req) {
       return json({ error: `User "${trimmedName}" already exists.` }, 400)
     }
 
-    data.users.push({ name: trimmedName, passcode: pc, questions: [] })
+    data.users.push({ name: trimmedName, passcode: String(passcode), questions: [] })
     await store.set('main', JSON.stringify(data))
 
     return json({ success: true, name: trimmedName })

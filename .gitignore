@@ -4,3 +4,4 @@ dist/
 *.local
 .netlify/
 .claude
+data.json

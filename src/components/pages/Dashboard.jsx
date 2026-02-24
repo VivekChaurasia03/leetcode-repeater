@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { useData } from '../hooks/useData.js'
-import DateSection from './DateSection.jsx'
-import AddModal from './AddModal.jsx'
-import EditModal from './EditModal.jsx'
+import { useData } from '../../hooks/useData.js'
+import DateSection from '../common/DateSection.jsx'
+import AddModal from '../modals/AddModal.jsx'
+import EditModal from '../modals/EditModal.jsx'
 import './Dashboard.css'
 
 function Dashboard({ user, onLogout }) {
@@ -202,26 +202,31 @@ function Dashboard({ user, onLogout }) {
               </div>
             ) : (
               <div className="mastered-grid">
-                {masteredQuestions.map(q => (
-                  <div key={q.id} className="mastered-chip">
-                    <a
-                      href={`https://leetcode.com/problemset/?search=${q.number}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mastered-chip-link"
-                      title={`Open problem ${q.number} on LeetCode`}
-                    >
-                      #{q.number}
-                    </a>
-                    <button
-                      className="mastered-chip-undo"
-                      title="Move back to active"
-                      onClick={() => handleUnmarkMastered(q.id)}
-                    >
-                      ↩
-                    </button>
-                  </div>
-                ))}
+                {masteredQuestions.map(q => {
+                  const url = q.slug
+                    ? `https://leetcode.com/problems/${q.slug}/`
+                    : `https://leetcode.com/problemset/?search=${q.number}`
+                  return (
+                    <div key={q.id} className="mastered-chip">
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mastered-chip-link"
+                        title={`Open problem ${q.number} on LeetCode`}
+                      >
+                        #{q.number} {q.title ? `- ${q.title}` : ''}
+                      </a>
+                      <button
+                        className="mastered-chip-undo"
+                        title="Move back to active"
+                        onClick={() => handleUnmarkMastered(q.id)}
+                      >
+                        ↩
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>

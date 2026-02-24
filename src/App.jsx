@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import Login from './components/Login.jsx'
-import Dashboard from './components/Dashboard.jsx'
-import AddUser from './components/AddUser.jsx'
+import Login from './components/pages/Login.jsx'
+import Dashboard from './components/pages/Dashboard.jsx'
+import AddUser from './components/pages/AddUser.jsx'
 
 function App() {
   const [user, setUser] = useState(null)

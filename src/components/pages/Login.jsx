@@ -25,7 +25,7 @@ function Login({ onLogin }) {
         return
       }
 
-      if (user.passcode !== parseInt(passcode, 10)) {
+      if (user.passcode !== passcode) {
         setError('Incorrect passcode.')
         setLoading(false)
         return

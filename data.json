@@ -1,9 +1,3 @@
 {
-  "users": [
-    {
-      "name": "Vivek Chaurasia",
-      "passcode": 1234,
-      "questions": []
-    }
-  ]
+  "users": []
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import './Modal.css'
-import DatePicker from './DatePicker'
+import DatePicker from '../common/DatePicker'
 
 function EditModal({ question, mode, onClose, onEdit, onReschedule }) {
   const [number, setNumber] = useState(String(question.number))

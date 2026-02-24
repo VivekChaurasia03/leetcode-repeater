@@ -109,8 +109,7 @@ function apiPlugin() {
               return
             }
 
-            const pc = parseInt(passcode, 10)
-            if (!pc || String(pc).length !== 4) {
+            if (typeof passcode !== 'string' || passcode.length !== 4 || !/^\d{4}$/.test(passcode)) {
               res.statusCode = 400
               res.end(JSON.stringify({ error: 'Passcode must be exactly 4 digits.' }))
               return
@@ -123,7 +122,7 @@ function apiPlugin() {
               return
             }
 
-            data.users.push({ name: trimmedName, passcode: pc, questions: [] })
+            data.users.push({ name: trimmedName, passcode: String(passcode), questions: [] })
             writeFileSync(DATA_FILE, JSON.stringify(data, null, 2))
             res.end(JSON.stringify({ success: true, name: trimmedName }))
           } catch {
