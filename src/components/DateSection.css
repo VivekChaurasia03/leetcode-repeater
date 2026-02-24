@@ -1,0 +1,126 @@
+.date-section {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+
+.date-section--overdue {
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.date-section--today {
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+/* ── Header ───────────────────────────────────────── */
+
+.date-section-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+}
+
+.date-section-header:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.date-section--overdue .date-section-header {
+  background: rgba(239, 68, 68, 0.04);
+}
+
+.date-section--today .date-section-header {
+  background: rgba(245, 158, 11, 0.04);
+}
+
+.date-section-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.date-section-chevron {
+  display: inline-block;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+  width: 14px;
+  flex-shrink: 0;
+  text-align: center;
+  line-height: 1;
+}
+
+.date-section-chevron.open {
+  transform: rotate(90deg);
+}
+
+.date-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.date-section-label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.date-section--today .date-section-label {
+  color: var(--accent);
+}
+
+.date-section--overdue .date-section-label {
+  color: var(--danger);
+}
+
+/* ── Due badge ────────────────────────────────────── */
+
+.date-section-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+}
+
+.date-section-badge.overdue {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+}
+
+.date-section-badge.future {
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--text-secondary);
+}
+
+/* ── Count pill ───────────────────────────────────── */
+
+.date-section-count {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border-radius: 999px;
+  padding: 0.15rem 0.625rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* ── Body ─────────────────────────────────────────── */
+
+.date-section-body {
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border-top: 1px solid var(--border);
+}

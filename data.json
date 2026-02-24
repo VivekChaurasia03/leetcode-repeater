@@ -1,0 +1,26 @@
+{
+  "users": [
+    {
+      "name": "Vivek Chaurasia",
+      "passcode": 1234,
+      "questions": [
+        {
+          "id": "528d8d2a-8eba-4fe9-837d-17d5552a971c",
+          "number": 128,
+          "scheduledDate": "2026-02-24",
+          "addedDate": "2026-02-24",
+          "status": "pending",
+          "title": "Longest Consecutive Sequence",
+          "difficulty": "Medium",
+          "slug": "longest-consecutive-sequence"
+        }
+      ]
+    },
+    {
+      "name": "Syed Affan",
+      "passcode": 1234,
+      "questions": [
+      ]
+    }
+  ]
+}
