@@ -96,6 +96,15 @@ input, select, textarea {
   font-size: 0.8rem;
 }
 
+.form-success {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  color: var(--success);
+  font-size: 0.8rem;
+}
+
 /* ── Shared buttons ───────────────────────────────── */
 
 .btn-primary {

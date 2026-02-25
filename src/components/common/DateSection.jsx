@@ -5,21 +5,29 @@ import './DateSection.css'
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 
+// Helper: Convert date to YYYY-MM-DD in local timezone
+function dateToISO(date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 function formatDate(dateStr) {
   const [year, month, day] = dateStr.split('-').map(Number)
   const date = new Date(year, month - 1, day)
   const today = new Date()
 
-  const todayStr = today.toISOString().split('T')[0]
+  const todayStr = dateToISO(today)
   if (dateStr === todayStr) return 'Today'
 
   const yesterday = new Date(today)
   yesterday.setDate(today.getDate() - 1)
-  if (dateStr === yesterday.toISOString().split('T')[0]) return 'Yesterday'
+  if (dateStr === dateToISO(yesterday)) return 'Yesterday'
 
   const tomorrow = new Date(today)
   tomorrow.setDate(today.getDate() + 1)
-  if (dateStr === tomorrow.toISOString().split('T')[0]) return 'Tomorrow'
+  if (dateStr === dateToISO(tomorrow)) return 'Tomorrow'
 
   const dayName   = DAYS[date.getDay()]
   const monthName = MONTHS[month - 1]
@@ -38,7 +46,7 @@ function getDueLabel(dateStr) {
   return `in ${Math.abs(diff)} day${Math.abs(diff) !== 1 ? 's' : ''}`
 }
 
-function DateSection({ date, dateType, questions, defaultOpen, draggingId, onDragStart, onDragEnd, onDropQuestion, onEdit, onReschedule, onMarkMastered, onDelete }) {
+function DateSection({ date, dateType, questions, defaultOpen, draggingId, onDragStart, onDragEnd, onDropQuestion, onEdit, onReschedule, onMarkMastered, onDelete, onNotes }) {
   const [open, setOpen]         = useState(defaultOpen)
   const [isDragOver, setIsDragOver] = useState(false)
   const dragCounter = useRef(0)
@@ -103,6 +111,7 @@ function DateSection({ date, dateType, questions, defaultOpen, draggingId, onDra
               onReschedule={onReschedule}
               onMarkMastered={onMarkMastered}
               onDelete={onDelete}
+              onNotes={onNotes}
             />
           ))}
         </div>

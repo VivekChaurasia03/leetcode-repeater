@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import './Modal.css'
 import DatePicker from '../common/DatePicker'
+import { getTodayLocal } from '../../hooks/useData.js'
 
 function AddModal({ onClose, onSubmit }) {
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayLocal()
   const [number, setNumber]       = useState('')
   const [date, setDate]           = useState(today)
+  const [notes, setNotes]         = useState('')
   const [error, setError]         = useState('')
   const [problemInfo, setProblemInfo] = useState(null)
   // null | 'loading' | 'not-found' | 'error' | 'rate-limited' | { title, difficulty, slug, tags, url }
@@ -47,6 +49,7 @@ function AddModal({ onClose, onSubmit }) {
       return
     }
     const meta = typeof problemInfo === 'object' && problemInfo !== null ? problemInfo : {}
+    meta.notes = notes
     onSubmit(num, date, meta)
   }
 
@@ -76,6 +79,18 @@ function AddModal({ onClose, onSubmit }) {
 
           {/* Problem preview */}
           <ProblemPreview info={problemInfo} />
+
+          <div className="form-group">
+            <label htmlFor="q-notes">Notes (Optional)</label>
+            <textarea
+              id="q-notes"
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="e.g. Try greedy approach, Use BFS, Solve with Heap..."
+              rows="3"
+              className="modal-textarea"
+            />
+          </div>
 
           <div className="form-group">
             <label htmlFor="q-date">Schedule For</label>

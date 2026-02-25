@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react'
 
+// Helper: Get today's date in local timezone (YYYY-MM-DD format)
+function getTodayLocal() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export function useData() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -34,11 +43,12 @@ export function useData() {
       id: crypto.randomUUID(),
       number,
       scheduledDate,
-      addedDate: new Date().toISOString().split('T')[0],
+      addedDate: getTodayLocal(),
       status: 'pending',
       title: meta.title ?? null,
       difficulty: meta.difficulty ?? null,
       slug: meta.slug ?? null,
+      notes: meta.notes ?? '',
     })
     await save(newData)
   }
@@ -82,6 +92,14 @@ export function useData() {
     await save(newData)
   }
 
+  const saveNotes = async (userName, questionId, notes) => {
+    const newData = JSON.parse(JSON.stringify(data))
+    const user = newData.users.find(u => u.name === userName)
+    const q = user.questions.find(q => q.id === questionId)
+    q.notes = notes
+    await save(newData)
+  }
+
   return {
     data,
     loading,
@@ -93,5 +111,8 @@ export function useData() {
     unmarkMastered,
     editQuestion,
     deleteQuestion,
+    saveNotes,
   }
 }
+
+export { getTodayLocal }

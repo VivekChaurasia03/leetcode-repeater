@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { useData } from '../../hooks/useData.js'
+import { useData, getTodayLocal } from '../../hooks/useData.js'
 import DateSection from '../common/DateSection.jsx'
 import AddModal from '../modals/AddModal.jsx'
 import EditModal from '../modals/EditModal.jsx'
+import NotesModal from '../modals/NotesModal.jsx'
 import './Dashboard.css'
 
 function Dashboard({ user, onLogout }) {
@@ -10,12 +11,13 @@ function Dashboard({ user, onLogout }) {
     data, loading, error,
     getUserData, addQuestion,
     rescheduleQuestion, markMastered,
-    unmarkMastered, editQuestion, deleteQuestion,
+    unmarkMastered, editQuestion, deleteQuestion, saveNotes,
   } = useData()
 
   const [view, setView] = useState('active')
   const [showAddModal, setShowAddModal] = useState(false)
   const [editTarget, setEditTarget] = useState(null)
+  const [notesTarget, setNotesTarget] = useState(null)
   const [draggingId, setDraggingId] = useState(null)
 
   if (loading) {
@@ -45,7 +47,7 @@ function Dashboard({ user, onLogout }) {
     )
   }
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayLocal()
 
   const pendingQuestions = userData.questions.filter(q => q.status === 'pending')
   const masteredQuestions = userData.questions.filter(q => q.status === 'mastered')
@@ -82,6 +84,8 @@ function Dashboard({ user, onLogout }) {
   const handleMarkMastered = (questionId) => markMastered(user.name, questionId)
   const handleUnmarkMastered = (questionId) => unmarkMastered(user.name, questionId)
   const handleDelete = (questionId) => deleteQuestion(user.name, questionId)
+  const handleSaveNotes = (questionId, notes) => saveNotes(user.name, questionId, notes)
+  const handleNotesOpen = (question) => setNotesTarget(question)
 
   const handleDragStart = (questionId) => setDraggingId(questionId)
   const handleDragEnd   = ()           => setDraggingId(null)
@@ -175,6 +179,7 @@ function Dashboard({ user, onLogout }) {
                     onReschedule={(q) => setEditTarget({ question: q, mode: 'reschedule' })}
                     onMarkMastered={handleMarkMastered}
                     onDelete={handleDelete}
+                    onNotes={handleNotesOpen}
                   />
                 ))}
               </div>
@@ -247,6 +252,13 @@ function Dashboard({ user, onLogout }) {
           onClose={() => setEditTarget(null)}
           onEdit={handleEdit}
           onReschedule={handleReschedule}
+        />
+      )}
+      {notesTarget && (
+        <NotesModal
+          question={notesTarget}
+          onClose={() => setNotesTarget(null)}
+          onSave={handleSaveNotes}
         />
       )}
     </div>

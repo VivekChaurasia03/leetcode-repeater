@@ -83,6 +83,26 @@
   padding-top: 0.25rem;
 }
 
+.modal-textarea {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.modal-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--bg-secondary);
+}
+
 /* ── Problem preview (AddModal) ───────────────────── */
 
 .problem-preview {
