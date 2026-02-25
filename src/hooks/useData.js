@@ -77,11 +77,16 @@ export function useData() {
     await save(newData)
   }
 
-  const editQuestion = async (userName, questionId, newNumber) => {
+  const editQuestion = async (userName, questionId, newNumber, meta = {}) => {
     const newData = JSON.parse(JSON.stringify(data))
     const user = newData.users.find(u => u.name === userName)
     const q = user.questions.find(q => q.id === questionId)
     q.number = newNumber
+    if (meta.title) q.title = meta.title
+    if (meta.difficulty) q.difficulty = meta.difficulty
+    if (meta.slug) q.slug = meta.slug
+    if (meta.url) q.url = meta.url
+    if (meta.tags) q.tags = meta.tags
     await save(newData)
   }
 
@@ -100,6 +105,75 @@ export function useData() {
     await save(newData)
   }
 
+  // ── FAQ Functions ──────────────────────────────────────────────
+  const getAllFAQs = () => {
+    if (!data || !data.faqs) return {}
+    return data.faqs
+  }
+
+  const rescheduleFAQ = async (userName, faqId, scheduledDate, notes = '') => {
+    const newData = JSON.parse(JSON.stringify(data))
+    const faq = newData.faqs[faqId]
+    if (!faq) return
+    
+    const user = newData.users.find(u => u.name === userName)
+    // Use provided notes, or fall back to notes already on FAQ object
+    const finalNotes = notes || (faq.notes ? faq.notes : '')
+    
+    // Add FAQ as a regular question with preserved notes
+    user.questions.push({
+      id: crypto.randomUUID(),
+      number: faq.number,
+      scheduledDate,
+      addedDate: getTodayLocal(),
+      status: 'pending',
+      title: faq.title,
+      difficulty: faq.difficulty,
+      slug: faq.slug,
+      notes: finalNotes,
+    })
+    // Remove from FAQs
+    delete newData.faqs[faqId]
+    await save(newData)
+  }
+
+  const masterFAQ = async (userName, faqId) => {
+    const newData = JSON.parse(JSON.stringify(data))
+    const faq = newData.faqs[faqId]
+    if (!faq) return
+    
+    const user = newData.users.find(u => u.name === userName)
+    // Add FAQ as mastered question
+    user.questions.push({
+      id: crypto.randomUUID(),
+      number: faq.number,
+      scheduledDate: getTodayLocal(),
+      addedDate: getTodayLocal(),
+      status: 'mastered',
+      title: faq.title,
+      difficulty: faq.difficulty,
+      slug: faq.slug,
+      notes: '',
+    })
+    // Remove from FAQs
+    delete newData.faqs[faqId]
+    await save(newData)
+  }
+
+  const deleteFAQ = async (faqId) => {
+    const newData = JSON.parse(JSON.stringify(data))
+    delete newData.faqs[faqId]
+    await save(newData)
+  }
+
+  const saveFAQNotes = async (faqId, notes) => {
+    const newData = JSON.parse(JSON.stringify(data))
+    if (newData.faqs[faqId]) {
+      newData.faqs[faqId].notes = notes
+      await save(newData)
+    }
+  }
+
   return {
     data,
     loading,
@@ -112,6 +186,11 @@ export function useData() {
     editQuestion,
     deleteQuestion,
     saveNotes,
+    getAllFAQs,
+    rescheduleFAQ,
+    masterFAQ,
+    deleteFAQ,
+    saveFAQNotes,
   }
 }
 

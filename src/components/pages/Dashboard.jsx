@@ -4,6 +4,7 @@ import DateSection from '../common/DateSection.jsx'
 import AddModal from '../modals/AddModal.jsx'
 import EditModal from '../modals/EditModal.jsx'
 import NotesModal from '../modals/NotesModal.jsx'
+import DatePicker from '../common/DatePicker.jsx'
 import './Dashboard.css'
 
 function Dashboard({ user, onLogout }) {
@@ -12,12 +13,14 @@ function Dashboard({ user, onLogout }) {
     getUserData, addQuestion,
     rescheduleQuestion, markMastered,
     unmarkMastered, editQuestion, deleteQuestion, saveNotes,
+    getAllFAQs, rescheduleFAQ, masterFAQ, deleteFAQ,
   } = useData()
 
   const [view, setView] = useState('active')
   const [showAddModal, setShowAddModal] = useState(false)
   const [editTarget, setEditTarget] = useState(null)
   const [notesTarget, setNotesTarget] = useState(null)
+  const [faqRescheduleTarget, setFAQRescheduleTarget] = useState(null)
   const [draggingId, setDraggingId] = useState(null)
 
   if (loading) {
@@ -71,8 +74,8 @@ function Dashboard({ user, onLogout }) {
     setShowAddModal(false)
   }
 
-  const handleEdit = async (questionId, newNumber) => {
-    await editQuestion(user.name, questionId, newNumber)
+  const handleEdit = async (questionId, newNumber, meta = {}) => {
+    await editQuestion(user.name, questionId, newNumber, meta)
     setEditTarget(null)
   }
 
@@ -94,6 +97,20 @@ function Dashboard({ user, onLogout }) {
     const question = userData.questions.find(q => q.id === questionId)
     if (!question || question.scheduledDate === targetDate) return
     await rescheduleQuestion(user.name, questionId, targetDate)
+  }
+
+  // ── FAQ Handlers ──────────────────────────────────────────────
+  const handleFAQReschedule = async (faqId, targetDate, notes = '') => {
+    await rescheduleFAQ(user.name, faqId, targetDate, notes)
+    setFAQRescheduleTarget(null)
+  }
+
+  const handleFAQMaster = async (faqId) => {
+    await masterFAQ(user.name, faqId)
+  }
+
+  const handleFAQDelete = async (faqId) => {
+    await deleteFAQ(faqId)
   }
 
   const firstName = user.name.split(' ')[0]
@@ -124,6 +141,15 @@ function Dashboard({ user, onLogout }) {
             Mastered
             {masteredQuestions.length > 0 && (
               <span className="nav-badge mastered">{masteredQuestions.length}</span>
+            )}
+          </button>
+          <button
+            className={`nav-tab ${view === 'faq' ? 'active' : ''}`}
+            onClick={() => setView('faq')}
+          >
+            FAQs
+            {Object.keys(getAllFAQs()).length > 0 && (
+              <span className="nav-badge">{Object.keys(getAllFAQs()).length}</span>
             )}
           </button>
         </div>
@@ -185,7 +211,7 @@ function Dashboard({ user, onLogout }) {
               </div>
             )}
           </>
-        ) : (
+        ) : view === 'mastered' ? (
           <div className="mastered-view">
             <div className="dashboard-header">
               <div>
@@ -235,7 +261,84 @@ function Dashboard({ user, onLogout }) {
               </div>
             )}
           </div>
-        )}
+        ) : view === 'faq' ? (
+          <div className="faq-view">
+            <div className="dashboard-header">
+              <div>
+                <h2>FAQ Questions</h2>
+                <p className="dashboard-subtitle">
+                  {Object.keys(getAllFAQs()).length === 0
+                    ? 'No FAQ questions'
+                    : `${Object.keys(getAllFAQs()).length} question${Object.keys(getAllFAQs()).length !== 1 ? 's' : ''} available`
+                  }
+                </p>
+              </div>
+            </div>
+
+            {Object.keys(getAllFAQs()).length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-icon">❓</div>
+                <h3>No FAQ questions</h3>
+              </div>
+            ) : (
+              <div className="date-list">
+                {Object.entries(getAllFAQs()).map(([faqId, faq]) => (
+                  <div key={faqId} className="question-card" draggable={false}>
+                    <div className="drag-handle" style={{ visibility: 'hidden' }} />
+                    <div className="question-card-left">
+                      <a
+                        href={faq.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="question-number"
+                        title={faq.title || `Search problem ${faq.number} on LeetCode`}
+                      >
+                        <span className="question-hash">#</span>{faq.number}
+                        {faq.difficulty && (
+                          <span className={`difficulty-badge difficulty-badge--${faq.difficulty.toLowerCase()}`}>
+                            {faq.difficulty}
+                          </span>
+                        )}
+                        <ExternalLinkIcon />
+                      </a>
+                      {faq.title && (
+                        <p className="question-title">{faq.title}</p>
+                      )}
+                    </div>
+
+                    <div className="question-card-actions">
+                      <button
+                        className="action-btn action-btn--reschedule"
+                        title="Schedule to a date with notes"
+                        onClick={() => setFAQRescheduleTarget(faqId)}
+                      >
+                        <CalendarIcon />
+                        <span>Reschedule</span>
+                      </button>
+
+                      <button
+                        className="action-btn action-btn--master"
+                        title="Mark as mastered"
+                        onClick={() => handleFAQMaster(faqId)}
+                      >
+                        <CheckIcon />
+                        <span>Mastered</span>
+                      </button>
+
+                      <button
+                        className="action-btn action-btn--delete"
+                        title="Delete question"
+                        onClick={() => handleFAQDelete(faqId)}
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : null}
       </main>
 
       {/* ── Modals ──────────────────────────────── */}
@@ -261,8 +364,124 @@ function Dashboard({ user, onLogout }) {
           onSave={handleSaveNotes}
         />
       )}
+      {faqRescheduleTarget && (
+        <FAQRescheduleModal
+          faqId={faqRescheduleTarget}
+          faq={getAllFAQs()[faqRescheduleTarget]}
+          onClose={() => setFAQRescheduleTarget(null)}
+          onSubmit={handleFAQReschedule}
+        />
+      )}
     </div>
   )
 }
 
+/* ── Icon Components ───────────────────────────── */
+
+function ExternalLinkIcon() {
+  return (
+    <svg className="ext-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15 3 21 3 21 9" />
+      <line x1="10" y1="14" x2="21" y2="3" />
+    </svg>
+  )
+}
+
+function CalendarIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  )
+}
+
+function NotesIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+  )
+}
+
+function TrashIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <line x1="10" y1="11" x2="10" y2="17" />
+      <line x1="14" y1="11" x2="14" y2="17" />
+    </svg>
+  )
+}
+
+/* ── Modal Components ───────────────────────────── */
+
+function FAQRescheduleModal({ faqId, faq, onClose, onSubmit }) {
+  const [date, setDate] = useState('')
+  const [notes, setNotes] = useState(faq?.notes || '')
+  const [error, setError] = useState('')
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (!date) {
+      setError('Please pick a date.')
+      return
+    }
+    onSubmit(faqId, date, notes)
+  }
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal" role="dialog" aria-modal="true">
+        <div className="modal-header">
+          <h3>Schedule #{faq?.number} - {faq?.title}</h3>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="modal-form">
+          <div className="form-group">
+            <label htmlFor="faq-date">Select Date</label>
+            <DatePicker id="faq-date" value={date} onChange={setDate} />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="faq-notes">Notes (Optional)</label>
+            <textarea
+              id="faq-notes"
+              value={notes}
+              onChange={e => { setNotes(e.target.value); setError('') }}
+              placeholder="e.g. Think about edge cases..."
+              rows="3"
+              className="modal-textarea"
+            />
+          </div>
+
+          {error && <p className="form-error">{error}</p>}
+
+          <div className="modal-actions">
+            <button type="button" className="btn-secondary" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary">
+              Schedule
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
 export default Dashboard
+

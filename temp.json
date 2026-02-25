@@ -1,0 +1,177 @@
+{
+    "1": {
+    "number": 1,
+    "title": "Two Sum",
+    "difficulty": "Easy",
+    "tags": "Array, Hash Table",
+    "url": "https://leetcode.com/problems/two-sum/"
+  },
+  "3": {
+    "number": 3,
+    "title": "Longest Substring Without Repeating Characters",
+    "difficulty": "Medium",
+    "tags": "Hash Table, String, Sliding Window",
+    "url": "https://leetcode.com/problems/longest-substring-without-repeating-characters/"
+  },
+  "42": {
+    "number": 42,
+    "title": "Trapping Rain Water",
+    "difficulty": "Hard",
+    "tags": "Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack",
+    "url": "https://leetcode.com/problems/trapping-rain-water/"
+  },
+  "11": {
+    "number": 11,
+    "title": "Container With Most Water",
+    "difficulty": "Medium",
+    "tags": "Array, Two Pointers, Greedy",
+    "url": "https://leetcode.com/problems/container-with-most-water/"
+  },
+  "14": {
+    "number": 14,
+    "title": "Longest Common Prefix",
+    "difficulty": "Easy",
+    "tags": "Array, String, Trie",
+    "url": "https://leetcode.com/problems/longest-common-prefix/"
+  },
+  "146": {
+    "number": 146,
+    "title": "LRU Cache",
+    "difficulty": "Medium",
+    "tags": "Hash Table, Linked List, Design, Doubly-Linked List",
+    "url": "https://leetcode.com/problems/lru-cache/"
+  },
+  "121": {
+    "number": 121,
+    "title": "Best Time to Buy and Sell Stock",
+    "difficulty": "Easy",
+    "tags": "Array, Dynamic Programming",
+    "url": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock/"
+  },
+  "128": {
+    "number": 128,
+    "title": "Longest Consecutive Sequence",
+    "difficulty": "Medium",
+    "tags": "Array, Hash Table, Union-Find",
+    "url": "https://leetcode.com/problems/longest-consecutive-sequence/"
+  },
+  "169": {
+    "number": 169,
+    "title": "Majority Element",
+    "difficulty": "Easy",
+    "tags": "Array, Hash Table, Divide and Conquer, Sorting, Counting",
+    "url": "https://leetcode.com/problems/majority-element/"
+  },
+  "200": {
+    "number": 200,
+    "title": "Number of Islands",
+    "difficulty": "Medium",
+    "tags": "Array, Depth-First Search, Breadth-First Search, Union-Find, Matrix",
+    "url": "https://leetcode.com/problems/number-of-islands/"
+  },
+  "875": {
+    "number": 875,
+    "title": "Koko Eating Bananas",
+    "difficulty": "Medium",
+    "tags": "Array, Binary Search",
+    "url": "https://leetcode.com/problems/koko-eating-bananas/"
+  },
+  "5": {
+    "number": 5,
+    "title": "Longest Palindromic Substring",
+    "difficulty": "Medium",
+    "tags": "Two Pointers, String, Dynamic Programming",
+    "url": "https://leetcode.com/problems/longest-palindromic-substring/"
+  },
+  "15": {
+    "number": 15,
+    "title": "3Sum",
+    "difficulty": "Medium",
+    "tags": "Array, Two Pointers, Sorting",
+    "url": "https://leetcode.com/problems/3sum/"
+  },
+  "560": {
+    "number": 560,
+    "title": "Subarray Sum Equals K",
+    "difficulty": "Medium",
+    "tags": "Array, Hash Table, Prefix Sum",
+    "url": "https://leetcode.com/problems/subarray-sum-equals-k/"
+  },
+  "2": {
+    "number": 2,
+    "title": "Add Two Numbers",
+    "difficulty": "Medium",
+    "tags": "Linked List, Math, Recursion",
+    "url": "https://leetcode.com/problems/add-two-numbers/"
+  },
+  "9": {
+    "number": 9,
+    "title": "Palindrome Number",
+    "difficulty": "Easy",
+    "tags": "Math",
+    "url": "https://leetcode.com/problems/palindrome-number/"
+  },
+  "49": {
+    "number": 49,
+    "title": "Group Anagrams",
+    "difficulty": "Medium",
+    "tags": "Array, Hash Table, String, Sorting",
+    "url": "https://leetcode.com/problems/group-anagrams/"
+  },
+  "56": {
+    "number": 56,
+    "title": "Merge Intervals",
+    "difficulty": "Medium",
+    "tags": "Array, Sorting",
+    "url": "https://leetcode.com/problems/merge-intervals/"
+  },
+  "242": {
+    "number": 242,
+    "title": "Valid Anagram",
+    "difficulty": "Easy",
+    "tags": "Hash Table, String, Sorting",
+    "url": "https://leetcode.com/problems/valid-anagram/"
+  },
+  "3752": {
+    "number": 3752,
+    "title": "Lexicographically Smallest Negated Permutation that Sums to Target",
+    "difficulty": "Medium",
+    "tags": "Array, Math, Two Pointers, Greedy, Sorting",
+    "url": "https://leetcode.com/problems/lexicographically-smallest-negated-permutation-that-sums-to-target/"
+  },
+  "23": {
+    "number": 23,
+    "title": "Merge k Sorted Lists",
+    "difficulty": "Hard",
+    "tags": "Linked List, Divide and Conquer, Heap (Priority Queue), Merge Sort",
+    "url": "https://leetcode.com/problems/merge-k-sorted-lists/"
+  },
+  "1929": {
+    "number": 1929,
+    "title": "Concatenation of Array",
+    "difficulty": "Easy",
+    "tags": "Array, Simulation",
+    "url": "https://leetcode.com/problems/concatenation-of-array/"
+  },
+  "3733": {
+    "number": 3733,
+    "title": "Minimum Time to Complete All Deliveries",
+    "difficulty": "Medium",
+    "tags": "Math, Binary Search",
+    "url": "https://leetcode.com/problems/minimum-time-to-complete-all-deliveries/"
+  },
+  "13": {
+    "number": 13,
+    "title": "Roman to Integer",
+    "difficulty": "Easy",
+    "tags": "Hash Table, Math, String",
+    "url": "https://leetcode.com/problems/roman-to-integer/"
+  },
+  "21": {
+    "number": 21,
+    "title": "Merge Two Sorted Lists",
+    "difficulty": "Easy",
+    "tags": "Linked List, Recursion",
+    "url": "https://leetcode.com/problems/merge-two-sorted-lists/"
+  }
+}
