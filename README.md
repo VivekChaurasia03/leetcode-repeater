@@ -1,16 +1,17 @@
 # LeetCode Repeater ⚡
 
-A personal spaced-repetition tracker for LeetCode problems. Schedule problems for future review, mark them mastered when they're truly "printed on your brain", and let the app keep everything organised by date.
+A spaced repetition system for algorithm problem-solving. Fail a problem, look up the solution, then schedule it for a future date. When that day arrives, attempt it again and reschedule based on how it went — repeat until it's printed on your brain.
 
 ---
 
 ## Features
 
 - **Date-grouped schedule** — questions grouped by date, sorted overdue → today → future. Past-due dates glow red, today glows amber.
+- **Drag to reschedule** — grab any question card and drop it onto a different date to move it instantly.
 - **Live LeetCode lookup** — type a problem number and the app fetches the title, difficulty, and tags in real time. Clicking a problem opens it directly on LeetCode.
 - **Per-question actions** — Reschedule to any date, edit the number, mark as Mastered, or delete.
 - **Mastered tab** — a separate grid of problems that are "printed on your brain", with a one-click undo.
-- **Multi-user** — each user logs in with their name + a 4-digit passcode. Add new users via `/add-user` (requires admin secret).
+- **Multi-user** — each user logs in with their name + a 4-digit passcode. Add or remove users via `/add-user` (requires admin secret).
 - **Deploys to Netlify** — API endpoints are served by a Netlify Function; data is persisted in Netlify Blobs.
 
 ---
@@ -24,12 +25,7 @@ npm run dev       # starts at http://localhost:3000
 
 Data is read from and written to `data.json` in the project root via a Vite server plugin. No separate backend process needed.
 
-### Default logins (local)
-
-| Name | Passcode |
-|------|----------|
-| Vivek Chaurasia | 1234 |
-| Jack Jill | 1234 |
+The data store starts empty — add your first user via `/add-user` before logging in.
 
 ---
 
@@ -65,7 +61,7 @@ ADMIN_SECRET=your-secret-here
    - Value: something only you know
 5. Deploy.
 
-All `/api/*` requests are handled by `netlify/functions/api.mjs`. Data is stored in **Netlify Blobs** (free, no setup required). On first deploy, users exist but their question lists are empty — add questions via the app as usual.
+All `/api/*` requests are handled by `netlify/functions/api.mjs`. Data is stored in **Netlify Blobs** (free, no setup required). On first deploy the store is empty — navigate to `/add-user` to create your first user, then log in.
 
 > **Note:** Local `data.json` and Netlify Blobs are separate stores. Questions added locally stay local; questions added on Netlify stay on Netlify.
 
@@ -90,8 +86,9 @@ leetcode_repeater/
 │       ├── QuestionCard.jsx/css
 │       ├── AddModal.jsx      # Add question with live LeetCode preview
 │       ├── EditModal.jsx     # Edit number / reschedule date
+│       ├── DatePicker.jsx/css # Custom calendar date picker
 │       ├── Modal.css
-│       ├── AddUser.jsx/css   # /add-user page
+│       ├── AddUser.jsx/css   # /add-user page (add + remove users)
 ├── data.json                 # Local data store (dev only)
 ├── vite.config.js            # Vite + API plugin (serves /api/* in dev)
 ├── netlify.toml              # Build config + SPA catch-all redirect
