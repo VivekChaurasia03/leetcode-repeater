@@ -1,33 +1,5 @@
 {
   "faqs": {
-    "56": {
-      "number": 56,
-      "title": "Merge Intervals",
-      "difficulty": "Medium",
-      "slug": "merge-intervals",
-      "url": "https://leetcode.com/problems/merge-intervals/"
-    },
-    "121": {
-      "number": 121,
-      "title": "Best Time to Buy and Sell Stock",
-      "difficulty": "Easy",
-      "slug": "best-time-to-buy-and-sell-stock",
-      "url": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock/"
-    },
-    "128": {
-      "number": 128,
-      "title": "Longest Consecutive Sequence",
-      "difficulty": "Medium",
-      "slug": "longest-consecutive-sequence",
-      "url": "https://leetcode.com/problems/longest-consecutive-sequence/"
-    },
-    "146": {
-      "number": 146,
-      "title": "LRU Cache",
-      "difficulty": "Medium",
-      "slug": "lru-cache",
-      "url": "https://leetcode.com/problems/lru-cache/"
-    },
     "169": {
       "number": 169,
       "title": "Majority Element",
@@ -76,13 +48,6 @@
       "difficulty": "Medium",
       "slug": "minimum-time-to-complete-all-deliveries",
       "url": "https://leetcode.com/problems/minimum-time-to-complete-all-deliveries/"
-    },
-    "3752": {
-      "number": 3752,
-      "title": "Lexicographically Smallest Negated Permutation that Sums to Target",
-      "difficulty": "Medium",
-      "slug": "lexicographically-smallest-negated-permutation-that-sums-to-target",
-      "url": "https://leetcode.com/problems/lexicographically-smallest-negated-permutation-that-sums-to-target/"
     }
   },
   "users": [
@@ -90,17 +55,6 @@
       "name": "vivek",
       "passcode": "1234",
       "questions": [
-        {
-          "id": "0c99a87e-adb6-4b7a-9839-e32699c5f177",
-          "number": 1,
-          "scheduledDate": "2026-02-25",
-          "addedDate": "2026-02-25",
-          "status": "mastered",
-          "title": "Two Sum",
-          "difficulty": "Easy",
-          "slug": "two-sum",
-          "notes": "Use a hashmap to keep track of already seen elements. "
-        },
         {
           "id": "3ee74b8f-2e16-4824-b95f-e6d859313bd6",
           "number": 2,
@@ -121,17 +75,6 @@
           "title": "Two Sum",
           "difficulty": "Easy",
           "slug": "two-sum",
-          "notes": ""
-        },
-        {
-          "id": "09e95af3-9dd2-4ddf-86b5-923f2e207103",
-          "number": 9,
-          "scheduledDate": "2026-02-24",
-          "addedDate": "2026-02-24",
-          "status": "mastered",
-          "title": "Palindrome Number",
-          "difficulty": "Easy",
-          "slug": "palindrome-number",
           "notes": ""
         },
         {
@@ -157,26 +100,15 @@
           "notes": ""
         },
         {
-          "id": "fa531cfa-c66f-4347-9b47-7e7ff548517d",
-          "number": 5,
-          "scheduledDate": "2026-02-24",
-          "addedDate": "2026-02-24",
-          "status": "mastered",
-          "title": "Longest Palindromic Substring",
-          "difficulty": "Medium",
-          "slug": "longest-palindromic-substring",
-          "notes": "Test Test"
-        },
-        {
           "id": "6d524108-8606-4870-ba4b-13acb201e408",
           "number": 21,
-          "scheduledDate": "2026-02-24",
+          "scheduledDate": "2026-03-05",
           "addedDate": "2026-02-24",
-          "status": "mastered",
+          "status": "pending",
           "title": "Merge Two Sorted Lists",
           "difficulty": "Easy",
           "slug": "merge-two-sorted-lists",
-          "notes": ""
+          "notes": "Hello Hello Ji\n"
         },
         {
           "id": "59dc606f-303b-4b8a-8c0d-89b1ded292df",
@@ -203,7 +135,7 @@
         {
           "id": "eb609035-2f63-4580-8b09-403fb4fc5051",
           "number": 49,
-          "scheduledDate": "2026-02-26",
+          "scheduledDate": "2026-03-05",
           "addedDate": "2026-02-24",
           "status": "pending",
           "title": "Group Anagrams",
@@ -214,7 +146,7 @@
         {
           "id": "a6ae5e5c-0944-4424-a67d-6a2bc27fdd6f",
           "number": 105,
-          "scheduledDate": "2026-02-24",
+          "scheduledDate": "2026-03-05",
           "addedDate": "2026-02-24",
           "status": "pending",
           "title": "Construct Binary Tree from Preorder and Inorder Traversal",
@@ -229,6 +161,57 @@
             "Tree",
             "Binary Tree"
           ]
+        },
+        {
+          "id": "93c12c99-4d18-4e8f-aeb8-7e3491b505a7",
+          "number": 56,
+          "scheduledDate": "2026-03-05",
+          "addedDate": "2026-03-05",
+          "status": "pending",
+          "title": "Merge Intervals",
+          "difficulty": "Medium",
+          "slug": "merge-intervals",
+          "notes": ""
+        },
+        {
+          "id": "566b6175-f48a-4121-a0bf-f352b03610ca",
+          "number": 3752,
+          "scheduledDate": "2026-03-05",
+          "addedDate": "2026-03-05",
+          "status": "pending",
+          "title": "Lexicographically Smallest Negated Permutation that Sums to Target",
+          "difficulty": "Medium",
+          "slug": "lexicographically-smallest-negated-permutation-that-sums-to-target",
+          "notes": ""
+        },
+        {
+          "id": "7da5dedb-1ea1-474d-92ff-b4800677d384",
+          "number": 146,
+          "scheduledDate": "2026-03-05",
+          "addedDate": "2026-03-05",
+          "status": "pending",
+          "title": "LRU Cache",
+          "difficulty": "Medium",
+          "slug": "lru-cache",
+          "notes": "Test"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "2c81fad2-706d-46d9-95d2-7274c91e67ab",
+          "date": "2026-03-06",
+          "header": "Make a QR Code",
+          "notes": "Make QR code for the class",
+          "done": true,
+          "addedDate": "2026-03-05"
+        },
+        {
+          "id": "c9f31ed0-d330-4dc4-a634-a6cecb623695",
+          "date": "2026-03-19",
+          "header": "Test TEst",
+          "notes": "dssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+          "done": false,
+          "addedDate": "2026-03-05"
         }
       ]
     }
