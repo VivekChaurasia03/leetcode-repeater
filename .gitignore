@@ -5,3 +5,5 @@ dist/
 .netlify/
 .claude
 data.json
+leetcode_cache.json
+DESIGN.md

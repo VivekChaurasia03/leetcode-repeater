@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { useData, getTodayLocal } from '../../hooks/useData.js'
 import DateSection from '../common/DateSection.jsx'
+import TaskSection from '../common/TaskSection.jsx'
 import AddModal from '../modals/AddModal.jsx'
 import EditModal from '../modals/EditModal.jsx'
 import NotesModal from '../modals/NotesModal.jsx'
+import AddTaskModal from '../modals/AddTaskModal.jsx'
+import EditTaskModal from '../modals/EditTaskModal.jsx'
 import DatePicker from '../common/DatePicker.jsx'
 import './Dashboard.css'
 
@@ -14,14 +17,18 @@ function Dashboard({ user, onLogout }) {
     rescheduleQuestion, markMastered,
     unmarkMastered, editQuestion, deleteQuestion, saveNotes,
     getAllFAQs, rescheduleFAQ, masterFAQ, deleteFAQ,
+    addTask, deleteTask, toggleTask, rescheduleTask, editTask,
   } = useData()
 
   const [view, setView] = useState('active')
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false)
+  const [editTaskTarget, setEditTaskTarget] = useState(null) // { task, mode: 'edit'|'reschedule' }
   const [editTarget, setEditTarget] = useState(null)
   const [notesTarget, setNotesTarget] = useState(null)
   const [faqRescheduleTarget, setFAQRescheduleTarget] = useState(null)
   const [draggingId, setDraggingId] = useState(null)
+  const [draggingTaskId, setDraggingTaskId] = useState(null)
 
   if (loading) {
     return (
@@ -99,6 +106,49 @@ function Dashboard({ user, onLogout }) {
     await rescheduleQuestion(user.name, questionId, targetDate)
   }
 
+  // ── Task handlers ──────────────────────────────────────────────
+  const userTasks = userData.tasks || []
+
+  const tasksByDate = userTasks.reduce((acc, t) => {
+    if (!acc[t.date]) acc[t.date] = []
+    acc[t.date].push(t)
+    return acc
+  }, {})
+
+  const incompleteDates = Object.keys(tasksByDate).filter(d => tasksByDate[d].some(t => !t.done))
+  const completedDates  = Object.keys(tasksByDate).filter(d => tasksByDate[d].every(t => t.done))
+
+  const sortedTaskDates = [
+    ...incompleteDates.sort((a, b) => a.localeCompare(b)),
+    ...completedDates.sort((a, b) => a.localeCompare(b)),
+  ]
+
+  const handleAddTask = async (date, header, notes) => {
+    await addTask(user.name, date, header, notes)
+    setShowAddTaskModal(false)
+  }
+
+  const handleToggleTask  = (taskId) => toggleTask(user.name, taskId)
+  const handleDeleteTask  = (taskId) => deleteTask(user.name, taskId)
+
+  const handleEditTask = async (taskId, updates) => {
+    await editTask(user.name, taskId, updates)
+    setEditTaskTarget(null)
+  }
+  const handleRescheduleTask = async (taskId, newDate) => {
+    await rescheduleTask(user.name, taskId, newDate)
+    setEditTaskTarget(null)
+  }
+
+  const handleTaskDragStart = (taskId) => setDraggingTaskId(taskId)
+  const handleTaskDragEnd   = ()       => setDraggingTaskId(null)
+  const handleDropTaskOnDate = async (targetDate, taskId) => {
+    setDraggingTaskId(null)
+    const task = userTasks.find(t => t.id === taskId)
+    if (!task || task.date === targetDate) return
+    await rescheduleTask(user.name, taskId, targetDate)
+  }
+
   // ── FAQ Handlers ──────────────────────────────────────────────
   const handleFAQReschedule = async (faqId, targetDate, notes = '') => {
     await rescheduleFAQ(user.name, faqId, targetDate, notes)
@@ -126,7 +176,7 @@ function Dashboard({ user, onLogout }) {
 
         <div className="navbar-center">
           <button
-            className={`nav-tab ${view === 'active' ? 'active' : ''}`}
+            className={`nav-tab nav-tab--active ${view === 'active' ? 'active' : ''}`}
             onClick={() => setView('active')}
           >
             Active
@@ -135,7 +185,7 @@ function Dashboard({ user, onLogout }) {
             )}
           </button>
           <button
-            className={`nav-tab ${view === 'mastered' ? 'active' : ''}`}
+            className={`nav-tab nav-tab--mastered ${view === 'mastered' ? 'active' : ''}`}
             onClick={() => setView('mastered')}
           >
             Mastered
@@ -144,12 +194,21 @@ function Dashboard({ user, onLogout }) {
             )}
           </button>
           <button
-            className={`nav-tab ${view === 'faq' ? 'active' : ''}`}
+            className={`nav-tab nav-tab--faq ${view === 'faq' ? 'active' : ''}`}
             onClick={() => setView('faq')}
           >
             FAQs
             {Object.keys(getAllFAQs()).length > 0 && (
               <span className="nav-badge">{Object.keys(getAllFAQs()).length}</span>
+            )}
+          </button>
+          <button
+            className={`nav-tab nav-tab--todo ${view === 'todo' ? 'active' : ''}`}
+            onClick={() => setView('todo')}
+          >
+            Todo
+            {userTasks.filter(t => !t.done).length > 0 && (
+              <span className="nav-badge todo">{userTasks.filter(t => !t.done).length}</span>
             )}
           </button>
         </div>
@@ -205,7 +264,6 @@ function Dashboard({ user, onLogout }) {
                     onReschedule={(q) => setEditTarget({ question: q, mode: 'reschedule' })}
                     onMarkMastered={handleMarkMastered}
                     onDelete={handleDelete}
-                    onNotes={handleNotesOpen}
                   />
                 ))}
               </div>
@@ -248,6 +306,13 @@ function Dashboard({ user, onLogout }) {
                       >
                         #{q.number} {q.title ? `- ${q.title}` : ''}
                       </a>
+                      <button
+                        className="mastered-chip-notes"
+                        title="View notes"
+                        onClick={() => handleNotesOpen(q)}
+                      >
+                        <NotesIcon />
+                      </button>
                       <button
                         className="mastered-chip-undo"
                         title="Move back to active"
@@ -338,6 +403,55 @@ function Dashboard({ user, onLogout }) {
               </div>
             )}
           </div>
+        ) : view === 'todo' ? (
+          <>
+            <div className="dashboard-header">
+              <div>
+                <h2>Tasks</h2>
+                <p className="dashboard-subtitle">
+                  {userTasks.length === 0
+                    ? 'No tasks yet — add one below!'
+                    : `${userTasks.filter(t => !t.done).length} remaining across ${sortedTaskDates.length} date${sortedTaskDates.length !== 1 ? 's' : ''}`
+                  }
+                </p>
+              </div>
+              <button className="btn-add" onClick={() => setShowAddTaskModal(true)}>
+                + Add Task
+              </button>
+            </div>
+
+            {userTasks.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-icon">✅</div>
+                <h3>No tasks yet</h3>
+                <p>Add tasks by date to keep track of what you need to do.</p>
+                <button className="btn-primary" onClick={() => setShowAddTaskModal(true)}>
+                  Add Your First Task
+                </button>
+              </div>
+            ) : (
+              <div className="date-list">
+                {sortedTaskDates.map(date => (
+                  <TaskSection
+                    key={date}
+                    date={date}
+                    dateType={getDateType(date)}
+                    tasks={tasksByDate[date]}
+                    allDone={completedDates.includes(date)}
+                    defaultOpen={!completedDates.includes(date)}
+                    draggingId={draggingTaskId}
+                    onDragStart={handleTaskDragStart}
+                    onDragEnd={handleTaskDragEnd}
+                    onDropTask={(taskId) => handleDropTaskOnDate(date, taskId)}
+                    onToggle={handleToggleTask}
+                    onEdit={(task) => setEditTaskTarget({ task, mode: 'edit' })}
+                    onReschedule={(task) => setEditTaskTarget({ task, mode: 'reschedule' })}
+                    onDelete={handleDeleteTask}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         ) : null}
       </main>
 
@@ -370,6 +484,21 @@ function Dashboard({ user, onLogout }) {
           faq={getAllFAQs()[faqRescheduleTarget]}
           onClose={() => setFAQRescheduleTarget(null)}
           onSubmit={handleFAQReschedule}
+        />
+      )}
+      {showAddTaskModal && (
+        <AddTaskModal
+          onClose={() => setShowAddTaskModal(false)}
+          onSubmit={handleAddTask}
+        />
+      )}
+      {editTaskTarget && (
+        <EditTaskModal
+          task={editTaskTarget.task}
+          mode={editTaskTarget.mode}
+          onClose={() => setEditTaskTarget(null)}
+          onSave={handleEditTask}
+          onReschedule={handleRescheduleTask}
         />
       )}
     </div>

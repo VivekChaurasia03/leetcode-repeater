@@ -71,7 +71,13 @@
   color: var(--text-primary);
   background: var(--bg-secondary);
   box-shadow: var(--shadow);
+  border-bottom: 2px solid transparent;
 }
+
+.nav-tab--active.active   { color: var(--accent);  border-bottom-color: var(--accent); }
+.nav-tab--mastered.active { color: var(--success);  border-bottom-color: var(--success); }
+.nav-tab--faq.active      { color: #60a5fa;         border-bottom-color: #60a5fa; }
+.nav-tab--todo.active     { color: #a78bfa;         border-bottom-color: #a78bfa; }
 
 .nav-badge {
   display: inline-flex;
@@ -89,6 +95,10 @@
 
 .nav-badge.mastered {
   background: var(--success);
+}
+
+.nav-badge.todo {
+  background: #a78bfa;
 }
 
 .navbar-right {
@@ -270,6 +280,23 @@
 .mastered-chip-link:hover {
   text-decoration: underline;
   color: #4ade80;
+}
+
+.mastered-chip-notes {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  padding: 0 0.5rem;
+  border-left: 1px solid rgba(34, 197, 94, 0.2);
+  transition: color 0.15s, background 0.15s;
+  cursor: pointer;
+}
+
+.mastered-chip-notes:hover {
+  color: var(--accent);
+  background: rgba(34, 197, 94, 0.1);
 }
 
 .mastered-chip-undo {

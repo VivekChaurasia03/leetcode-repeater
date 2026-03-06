@@ -74,6 +74,7 @@ export function useData() {
     const user = newData.users.find(u => u.name === userName)
     const q = user.questions.find(q => q.id === questionId)
     q.status = 'pending'
+    q.scheduledDate = getTodayLocal()
     await save(newData)
   }
 
@@ -174,6 +175,56 @@ export function useData() {
     }
   }
 
+  // ── Task Functions ──────────────────────────────────────────────
+  const addTask = async (userName, date, header, notes = '') => {
+    const newData = JSON.parse(JSON.stringify(data))
+    const user = newData.users.find(u => u.name === userName)
+    if (!user.tasks) user.tasks = []
+    user.tasks.push({
+      id: crypto.randomUUID(),
+      date,
+      header,
+      notes,
+      done: false,
+      addedDate: getTodayLocal(),
+    })
+    await save(newData)
+  }
+
+  const deleteTask = async (userName, taskId) => {
+    const newData = JSON.parse(JSON.stringify(data))
+    const user = newData.users.find(u => u.name === userName)
+    user.tasks = (user.tasks || []).filter(t => t.id !== taskId)
+    await save(newData)
+  }
+
+  const toggleTask = async (userName, taskId) => {
+    const newData = JSON.parse(JSON.stringify(data))
+    const user = newData.users.find(u => u.name === userName)
+    const t = (user.tasks || []).find(t => t.id === taskId)
+    if (t) t.done = !t.done
+    await save(newData)
+  }
+
+  const rescheduleTask = async (userName, taskId, newDate) => {
+    const newData = JSON.parse(JSON.stringify(data))
+    const user = newData.users.find(u => u.name === userName)
+    const t = (user.tasks || []).find(t => t.id === taskId)
+    if (t) t.date = newDate
+    await save(newData)
+  }
+
+  const editTask = async (userName, taskId, updates) => {
+    const newData = JSON.parse(JSON.stringify(data))
+    const user = newData.users.find(u => u.name === userName)
+    const t = (user.tasks || []).find(t => t.id === taskId)
+    if (!t) return
+    if (updates.header !== undefined) t.header = updates.header
+    if (updates.notes  !== undefined) t.notes  = updates.notes
+    if (updates.date   !== undefined) t.date   = updates.date
+    await save(newData)
+  }
+
   return {
     data,
     loading,
@@ -191,6 +242,11 @@ export function useData() {
     masterFAQ,
     deleteFAQ,
     saveFAQNotes,
+    addTask,
+    deleteTask,
+    toggleTask,
+    rescheduleTask,
+    editTask,
   }
 }
 

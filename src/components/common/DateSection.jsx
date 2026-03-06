@@ -46,7 +46,7 @@ function getDueLabel(dateStr) {
   return `in ${Math.abs(diff)} day${Math.abs(diff) !== 1 ? 's' : ''}`
 }
 
-function DateSection({ date, dateType, questions, defaultOpen, draggingId, onDragStart, onDragEnd, onDropQuestion, onEdit, onReschedule, onMarkMastered, onDelete, onNotes }) {
+function DateSection({ date, dateType, questions, defaultOpen, draggingId, onDragStart, onDragEnd, onDropQuestion, onEdit, onReschedule, onMarkMastered, onDelete }) {
   const [open, setOpen]         = useState(defaultOpen)
   const [isDragOver, setIsDragOver] = useState(false)
   const dragCounter = useRef(0)
@@ -61,8 +61,17 @@ function DateSection({ date, dateType, questions, defaultOpen, draggingId, onDra
     if (isDragOver && !open) setOpen(true)
   }, [isDragOver])
 
-  const handleDragOver  = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move' }
-  const handleDragEnter = (e) => { e.preventDefault(); dragCounter.current++; if (dragCounter.current === 1) setIsDragOver(true) }
+  const handleDragOver  = (e) => {
+    if (!e.dataTransfer.types.includes('text/plain')) return
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+  const handleDragEnter = (e) => {
+    if (!e.dataTransfer.types.includes('text/plain')) return
+    e.preventDefault()
+    dragCounter.current++
+    if (dragCounter.current === 1) setIsDragOver(true)
+  }
   const handleDragLeave = ()  => { dragCounter.current--; if (dragCounter.current === 0) setIsDragOver(false) }
   const handleDrop      = (e) => {
     e.preventDefault()
@@ -111,7 +120,6 @@ function DateSection({ date, dateType, questions, defaultOpen, draggingId, onDra
               onReschedule={onReschedule}
               onMarkMastered={onMarkMastered}
               onDelete={onDelete}
-              onNotes={onNotes}
             />
           ))}
         </div>
