@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase.js'
 
-// Helper: Get today's date in local timezone (YYYY-MM-DD format)
 function getTodayLocal() {
   const now = new Date()
   const year = now.getFullYear()
@@ -10,223 +10,245 @@ function getTodayLocal() {
 }
 
 export function useData() {
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [loading, setLoading]     = useState(true)
+  const [error, setError]         = useState(null)
+  const [userId, setUserId]       = useState(null)
+  const [questions, setQuestions] = useState([])
+  const [tasks, setTasks]         = useState([])
+  const [faqRows, setFaqRows]     = useState([])
 
+  // Resolve userId from sessionStorage on mount
   useEffect(() => {
-    fetch('/api/data')
-      .then(r => r.json())
-      .then(d => { setData(d); setLoading(false) })
-      .catch(e => { setError(e.message); setLoading(false) })
+    const saved = sessionStorage.getItem('lc-user')
+    if (saved) {
+      const { id } = JSON.parse(saved)
+      if (id) setUserId(id)
+      else setLoading(false)
+    } else {
+      setLoading(false)
+    }
   }, [])
 
-  const save = async (newData) => {
-    const res = await fetch('/api/data', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newData),
-    })
-    if (!res.ok) throw new Error('Failed to save data')
-    setData(newData)
-  }
+  useEffect(() => {
+    if (userId) loadAll(userId)
+  }, [userId])
 
-  const getUserData = (userName) => {
-    if (!data) return null
-    return data.users.find(u => u.name === userName)
-  }
-
-  const addQuestion = async (userName, number, scheduledDate, meta = {}) => {
-    const newData = JSON.parse(JSON.stringify(data))
-    const user = newData.users.find(u => u.name === userName)
-    user.questions.push({
-      id: crypto.randomUUID(),
-      number,
-      scheduledDate,
-      addedDate: getTodayLocal(),
-      status: 'pending',
-      title: meta.title ?? null,
-      difficulty: meta.difficulty ?? null,
-      slug: meta.slug ?? null,
-      notes: meta.notes ?? '',
-    })
-    await save(newData)
-  }
-
-  const rescheduleQuestion = async (userName, questionId, newDate) => {
-    const newData = JSON.parse(JSON.stringify(data))
-    const user = newData.users.find(u => u.name === userName)
-    const q = user.questions.find(q => q.id === questionId)
-    q.scheduledDate = newDate
-    await save(newData)
-  }
-
-  const markMastered = async (userName, questionId) => {
-    const newData = JSON.parse(JSON.stringify(data))
-    const user = newData.users.find(u => u.name === userName)
-    const q = user.questions.find(q => q.id === questionId)
-    q.status = 'mastered'
-    await save(newData)
-  }
-
-  const unmarkMastered = async (userName, questionId) => {
-    const newData = JSON.parse(JSON.stringify(data))
-    const user = newData.users.find(u => u.name === userName)
-    const q = user.questions.find(q => q.id === questionId)
-    q.status = 'pending'
-    q.scheduledDate = getTodayLocal()
-    await save(newData)
-  }
-
-  const editQuestion = async (userName, questionId, newNumber, meta = {}) => {
-    const newData = JSON.parse(JSON.stringify(data))
-    const user = newData.users.find(u => u.name === userName)
-    const q = user.questions.find(q => q.id === questionId)
-    q.number = newNumber
-    if (meta.title) q.title = meta.title
-    if (meta.difficulty) q.difficulty = meta.difficulty
-    if (meta.slug) q.slug = meta.slug
-    if (meta.url) q.url = meta.url
-    if (meta.tags) q.tags = meta.tags
-    await save(newData)
-  }
-
-  const deleteQuestion = async (userName, questionId) => {
-    const newData = JSON.parse(JSON.stringify(data))
-    const user = newData.users.find(u => u.name === userName)
-    user.questions = user.questions.filter(q => q.id !== questionId)
-    await save(newData)
-  }
-
-  const saveNotes = async (userName, questionId, notes) => {
-    const newData = JSON.parse(JSON.stringify(data))
-    const user = newData.users.find(u => u.name === userName)
-    const q = user.questions.find(q => q.id === questionId)
-    q.notes = notes
-    await save(newData)
-  }
-
-  // ── FAQ Functions ──────────────────────────────────────────────
-  const getAllFAQs = () => {
-    if (!data || !data.faqs) return {}
-    return data.faqs
-  }
-
-  const rescheduleFAQ = async (userName, faqId, scheduledDate, notes = '') => {
-    const newData = JSON.parse(JSON.stringify(data))
-    const faq = newData.faqs[faqId]
-    if (!faq) return
-    
-    const user = newData.users.find(u => u.name === userName)
-    // Use provided notes, or fall back to notes already on FAQ object
-    const finalNotes = notes || (faq.notes ? faq.notes : '')
-    
-    // Add FAQ as a regular question with preserved notes
-    user.questions.push({
-      id: crypto.randomUUID(),
-      number: faq.number,
-      scheduledDate,
-      addedDate: getTodayLocal(),
-      status: 'pending',
-      title: faq.title,
-      difficulty: faq.difficulty,
-      slug: faq.slug,
-      notes: finalNotes,
-    })
-    // Remove from FAQs
-    delete newData.faqs[faqId]
-    await save(newData)
-  }
-
-  const masterFAQ = async (userName, faqId) => {
-    const newData = JSON.parse(JSON.stringify(data))
-    const faq = newData.faqs[faqId]
-    if (!faq) return
-    
-    const user = newData.users.find(u => u.name === userName)
-    // Add FAQ as mastered question
-    user.questions.push({
-      id: crypto.randomUUID(),
-      number: faq.number,
-      scheduledDate: getTodayLocal(),
-      addedDate: getTodayLocal(),
-      status: 'mastered',
-      title: faq.title,
-      difficulty: faq.difficulty,
-      slug: faq.slug,
-      notes: '',
-    })
-    // Remove from FAQs
-    delete newData.faqs[faqId]
-    await save(newData)
-  }
-
-  const deleteFAQ = async (faqId) => {
-    const newData = JSON.parse(JSON.stringify(data))
-    delete newData.faqs[faqId]
-    await save(newData)
-  }
-
-  const saveFAQNotes = async (faqId, notes) => {
-    const newData = JSON.parse(JSON.stringify(data))
-    if (newData.faqs[faqId]) {
-      newData.faqs[faqId].notes = notes
-      await save(newData)
+  const loadAll = async (uid) => {
+    setLoading(true)
+    try {
+      const [{ data: qs, error: e1 }, { data: ts, error: e2 }, { data: fs, error: e3 }] = await Promise.all([
+        supabase.from('questions').select('*').eq('user_id', uid),
+        supabase.from('tasks').select('*').eq('user_id', uid),
+        supabase.from('faqs').select('*').order('position', { ascending: true }),
+      ])
+      if (e1 || e2 || e3) throw new Error(e1?.message || e2?.message || e3?.message)
+      setQuestions(qs || [])
+      setTasks(ts || [])
+      setFaqRows(fs || [])
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setLoading(false)
     }
   }
 
-  // ── Task Functions ──────────────────────────────────────────────
-  const addTask = async (userName, date, header, notes = '') => {
-    const newData = JSON.parse(JSON.stringify(data))
-    const user = newData.users.find(u => u.name === userName)
-    if (!user.tasks) user.tasks = []
-    user.tasks.push({
-      id: crypto.randomUUID(),
+  // Returns user data in the same shape Dashboard.jsx expects
+  const getUserData = (_userName) => ({
+    questions: questions.map(q => ({
+      id:            q.id,
+      number:        q.number,
+      scheduledDate: q.scheduled_date,
+      addedDate:     q.added_date,
+      status:        q.status,
+      title:         q.title,
+      difficulty:    q.difficulty,
+      slug:          q.slug,
+      url:           q.url,
+      notes:         q.notes ?? '',
+    })),
+    tasks: tasks.map(t => ({
+      id:        t.id,
+      date:      t.date,
+      header:    t.header,
+      notes:     t.notes ?? '',
+      done:      t.done,
+      addedDate: t.added_date,
+    })),
+  })
+
+  // ── Question mutations ────────────────────────────────────────────────────────
+
+  const addQuestion = async (_userName, number, scheduledDate, meta = {}) => {
+    if (questions.some(q => q.number === number)) return false
+    const { data } = await supabase.from('questions').insert({
+      user_id:        userId,
+      number,
+      scheduled_date: scheduledDate,
+      added_date:     getTodayLocal(),
+      status:         'pending',
+      title:          meta.title       ?? null,
+      difficulty:     meta.difficulty  ?? null,
+      slug:           meta.slug        ?? null,
+      url:            meta.url         ?? null,
+      notes:          meta.notes       ?? '',
+    }).select().single()
+    if (data) setQuestions(prev => [...prev, data])
+    return true
+  }
+
+  const rescheduleQuestion = async (_userName, questionId, newDate) => {
+    setQuestions(prev => prev.map(q => q.id === questionId ? { ...q, scheduled_date: newDate } : q))
+    await supabase.from('questions').update({ scheduled_date: newDate }).eq('id', questionId)
+  }
+
+  const markMastered = async (_userName, questionId) => {
+    setQuestions(prev => prev.map(q => q.id === questionId ? { ...q, status: 'mastered' } : q))
+    await supabase.from('questions').update({ status: 'mastered' }).eq('id', questionId)
+  }
+
+  const unmarkMastered = async (_userName, questionId) => {
+    const today = getTodayLocal()
+    setQuestions(prev => prev.map(q => q.id === questionId ? { ...q, status: 'pending', scheduled_date: today } : q))
+    await supabase.from('questions').update({ status: 'pending', scheduled_date: today }).eq('id', questionId)
+  }
+
+  const editQuestion = async (_userName, questionId, newNumber, meta = {}) => {
+    const updates = { number: newNumber }
+    if (meta.title)      updates.title      = meta.title
+    if (meta.difficulty) updates.difficulty = meta.difficulty
+    if (meta.slug)       updates.slug       = meta.slug
+    if (meta.url)        updates.url        = meta.url
+    setQuestions(prev => prev.map(q => q.id === questionId ? { ...q, ...updates } : q))
+    await supabase.from('questions').update(updates).eq('id', questionId)
+  }
+
+  const deleteQuestion = async (_userName, questionId) => {
+    setQuestions(prev => prev.filter(q => q.id !== questionId))
+    await supabase.from('questions').delete().eq('id', questionId)
+  }
+
+  const saveNotes = async (_userName, questionId, notes) => {
+    setQuestions(prev => prev.map(q => q.id === questionId ? { ...q, notes } : q))
+    await supabase.from('questions').update({ notes }).eq('id', questionId)
+  }
+
+  // ── FAQ functions ─────────────────────────────────────────────────────────────
+
+  const getAllFAQs = () => {
+    const faqs = {}
+    for (const faq of faqRows) {
+      if (!faqs[faq.company]) faqs[faq.company] = []
+      faqs[faq.company].push({
+        id:         faq.id,
+        number:     faq.number,
+        title:      faq.title,
+        difficulty: faq.difficulty,
+        slug:       faq.slug,
+        url:        faq.url,
+      })
+    }
+    return faqs
+  }
+
+  const _findFAQ = (company, faqId) =>
+    getAllFAQs()[company]?.find(f => String(f.id) === String(faqId))
+
+  const rescheduleFAQ = async (_userName, company, faqId, scheduledDate, notes = '') => {
+    const faq = _findFAQ(company, faqId)
+    if (!faq) return
+    const alreadyExists = questions.some(q => q.number === faq.number)
+    if (!alreadyExists) {
+      const { data } = await supabase.from('questions').insert({
+        user_id:        userId,
+        number:         faq.number,
+        scheduled_date: scheduledDate,
+        added_date:     getTodayLocal(),
+        status:         'pending',
+        title:          faq.title,
+        difficulty:     faq.difficulty,
+        slug:           faq.slug,
+        url:            faq.url,
+        notes:          notes || '',
+      }).select().single()
+      if (data) setQuestions(prev => [...prev, data])
+    }
+    setFaqRows(prev => prev.filter(f => f.id !== faq.id))
+    await supabase.from('faqs').delete().eq('id', faq.id)
+  }
+
+  const masterFAQ = async (_userName, company, faqId) => {
+    const faq = _findFAQ(company, faqId)
+    if (!faq) return
+    const alreadyExists = questions.some(q => q.number === faq.number)
+    if (!alreadyExists) {
+      const { data } = await supabase.from('questions').insert({
+        user_id:        userId,
+        number:         faq.number,
+        scheduled_date: getTodayLocal(),
+        added_date:     getTodayLocal(),
+        status:         'mastered',
+        title:          faq.title,
+        difficulty:     faq.difficulty,
+        slug:           faq.slug,
+        url:            faq.url,
+        notes:          '',
+      }).select().single()
+      if (data) setQuestions(prev => [...prev, data])
+    }
+    setFaqRows(prev => prev.filter(f => f.id !== faq.id))
+    await supabase.from('faqs').delete().eq('id', faq.id)
+  }
+
+  const deleteFAQ = async (company, faqId) => {
+    const faq = _findFAQ(company, faqId)
+    if (!faq) return
+    setFaqRows(prev => prev.filter(f => f.id !== faq.id))
+    await supabase.from('faqs').delete().eq('id', faq.id)
+  }
+
+  const saveFAQNotes = async () => {} // no-op: faqs table has no notes column
+
+  // ── Task mutations ────────────────────────────────────────────────────────────
+
+  const addTask = async (_userName, date, header, notes = '') => {
+    const { data } = await supabase.from('tasks').insert({
+      user_id:    userId,
       date,
       header,
       notes,
-      done: false,
-      addedDate: getTodayLocal(),
-    })
-    await save(newData)
+      done:       false,
+      added_date: getTodayLocal(),
+    }).select().single()
+    if (data) setTasks(prev => [...prev, data])
   }
 
-  const deleteTask = async (userName, taskId) => {
-    const newData = JSON.parse(JSON.stringify(data))
-    const user = newData.users.find(u => u.name === userName)
-    user.tasks = (user.tasks || []).filter(t => t.id !== taskId)
-    await save(newData)
+  const deleteTask = async (_userName, taskId) => {
+    setTasks(prev => prev.filter(t => t.id !== taskId))
+    await supabase.from('tasks').delete().eq('id', taskId)
   }
 
-  const toggleTask = async (userName, taskId) => {
-    const newData = JSON.parse(JSON.stringify(data))
-    const user = newData.users.find(u => u.name === userName)
-    const t = (user.tasks || []).find(t => t.id === taskId)
-    if (t) t.done = !t.done
-    await save(newData)
+  const toggleTask = async (_userName, taskId) => {
+    const task = tasks.find(t => t.id === taskId)
+    if (!task) return
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, done: !t.done } : t))
+    await supabase.from('tasks').update({ done: !task.done }).eq('id', taskId)
   }
 
-  const rescheduleTask = async (userName, taskId, newDate) => {
-    const newData = JSON.parse(JSON.stringify(data))
-    const user = newData.users.find(u => u.name === userName)
-    const t = (user.tasks || []).find(t => t.id === taskId)
-    if (t) t.date = newDate
-    await save(newData)
+  const rescheduleTask = async (_userName, taskId, newDate) => {
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, date: newDate } : t))
+    await supabase.from('tasks').update({ date: newDate }).eq('id', taskId)
   }
 
-  const editTask = async (userName, taskId, updates) => {
-    const newData = JSON.parse(JSON.stringify(data))
-    const user = newData.users.find(u => u.name === userName)
-    const t = (user.tasks || []).find(t => t.id === taskId)
-    if (!t) return
-    if (updates.header !== undefined) t.header = updates.header
-    if (updates.notes  !== undefined) t.notes  = updates.notes
-    if (updates.date   !== undefined) t.date   = updates.date
-    await save(newData)
+  const editTask = async (_userName, taskId, updates) => {
+    const dbUpdates = {}
+    if (updates.header !== undefined) dbUpdates.header = updates.header
+    if (updates.notes  !== undefined) dbUpdates.notes  = updates.notes
+    if (updates.date   !== undefined) dbUpdates.date   = updates.date
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...dbUpdates } : t))
+    await supabase.from('tasks').update(dbUpdates).eq('id', taskId)
   }
 
   return {
-    data,
     loading,
     error,
     getUserData,

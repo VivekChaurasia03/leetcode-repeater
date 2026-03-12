@@ -1,11 +1,12 @@
 import { useState } from 'react'
+import { supabase } from '../../lib/supabase.js'
 import './Login.css'
 
 function Login({ onLogin }) {
-  const [name, setName] = useState('')
+  const [name, setName]         = useState('')
   const [passcode, setPasscode] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [error, setError]       = useState('')
+  const [loading, setLoading]   = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -13,11 +14,11 @@ function Login({ onLogin }) {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/data')
-      const data = await res.json()
-      const user = data.users.find(
-        u => u.name.toLowerCase() === name.trim().toLowerCase()
-      )
+      const { data: user } = await supabase
+        .from('users')
+        .select('id, name, passcode')
+        .ilike('name', name.trim())
+        .maybeSingle()
 
       if (!user) {
         setError('User not found. Check your name and try again.')
@@ -31,9 +32,9 @@ function Login({ onLogin }) {
         return
       }
 
-      onLogin({ name: user.name })
+      onLogin({ name: user.name, id: user.id })
     } catch {
-      setError('Could not load data. Make sure the dev server is running.')
+      setError('Could not connect. Please try again.')
       setLoading(false)
     }
   }
@@ -55,7 +56,7 @@ function Login({ onLogin }) {
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="e.g. Vivek Chaurasia"
+              placeholder="e.g. Vivek"
               required
               autoFocus
             />

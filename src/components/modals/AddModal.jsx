@@ -37,7 +37,7 @@ function AddModal({ onClose, onSubmit }) {
     return () => clearTimeout(timer)
   }, [number])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const num = parseInt(number, 10)
     if (!num || num < 1 || num > 9999) {
@@ -50,7 +50,8 @@ function AddModal({ onClose, onSubmit }) {
     }
     const meta = typeof problemInfo === 'object' && problemInfo !== null ? problemInfo : {}
     meta.notes = notes
-    onSubmit(num, date, meta)
+    const err = await onSubmit(num, date, meta)
+    if (err) setError(err)
   }
 
   return (

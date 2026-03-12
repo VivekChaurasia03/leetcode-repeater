@@ -12,7 +12,7 @@ import './Dashboard.css'
 
 function Dashboard({ user, onLogout }) {
   const {
-    data, loading, error,
+    loading, error,
     getUserData, addQuestion,
     rescheduleQuestion, markMastered,
     unmarkMastered, editQuestion, deleteQuestion, saveNotes,
@@ -26,7 +26,8 @@ function Dashboard({ user, onLogout }) {
   const [editTaskTarget, setEditTaskTarget] = useState(null) // { task, mode: 'edit'|'reschedule' }
   const [editTarget, setEditTarget] = useState(null)
   const [notesTarget, setNotesTarget] = useState(null)
-  const [faqRescheduleTarget, setFAQRescheduleTarget] = useState(null)
+  const [faqRescheduleTarget, setFAQRescheduleTarget] = useState(null) // { company, faqId }
+  const [collapsedCompanies, setCollapsedCompanies] = useState(new Set())
   const [draggingId, setDraggingId] = useState(null)
   const [draggingTaskId, setDraggingTaskId] = useState(null)
 
@@ -77,7 +78,8 @@ function Dashboard({ user, onLogout }) {
   }
 
   const handleAddQuestion = async (number, date, meta) => {
-    await addQuestion(user.name, number, date, meta)
+    const added = await addQuestion(user.name, number, date, meta)
+    if (added === false) return 'Question #' + number + ' is already in your list.'
     setShowAddModal(false)
   }
 
@@ -150,18 +152,29 @@ function Dashboard({ user, onLogout }) {
   }
 
   // ── FAQ Handlers ──────────────────────────────────────────────
-  const handleFAQReschedule = async (faqId, targetDate, notes = '') => {
-    await rescheduleFAQ(user.name, faqId, targetDate, notes)
+  const handleFAQReschedule = async (company, faqId, targetDate, notes = '') => {
+    await rescheduleFAQ(user.name, company, faqId, targetDate, notes)
     setFAQRescheduleTarget(null)
   }
 
-  const handleFAQMaster = async (faqId) => {
-    await masterFAQ(user.name, faqId)
+  const handleFAQMaster = async (company, faqId) => {
+    await masterFAQ(user.name, company, faqId)
   }
 
-  const handleFAQDelete = async (faqId) => {
-    await deleteFAQ(faqId)
+  const handleFAQDelete = async (company, faqId) => {
+    await deleteFAQ(company, faqId)
   }
+
+  const toggleCompany = (company) => {
+    setCollapsedCompanies(prev => {
+      const next = new Set(prev)
+      if (next.has(company)) next.delete(company)
+      else next.add(company)
+      return next
+    })
+  }
+
+  const totalFAQCount = Object.values(getAllFAQs()).reduce((sum, arr) => sum + arr.length, 0)
 
   const firstName = user.name.split(' ')[0]
 
@@ -198,8 +211,8 @@ function Dashboard({ user, onLogout }) {
             onClick={() => setView('faq')}
           >
             FAQs
-            {Object.keys(getAllFAQs()).length > 0 && (
-              <span className="nav-badge">{Object.keys(getAllFAQs()).length}</span>
+            {totalFAQCount > 0 && (
+              <span className="nav-badge faq">{totalFAQCount}</span>
             )}
           </button>
           <button
@@ -332,74 +345,94 @@ function Dashboard({ user, onLogout }) {
               <div>
                 <h2>FAQ Questions</h2>
                 <p className="dashboard-subtitle">
-                  {Object.keys(getAllFAQs()).length === 0
+                  {totalFAQCount === 0
                     ? 'No FAQ questions'
-                    : `${Object.keys(getAllFAQs()).length} question${Object.keys(getAllFAQs()).length !== 1 ? 's' : ''} available`
+                    : `${totalFAQCount} question${totalFAQCount !== 1 ? 's' : ''} across ${Object.keys(getAllFAQs()).length} compan${Object.keys(getAllFAQs()).length !== 1 ? 'ies' : 'y'}`
                   }
                 </p>
               </div>
             </div>
 
-            {Object.keys(getAllFAQs()).length === 0 ? (
+            {totalFAQCount === 0 ? (
               <div className="empty-state">
                 <div className="empty-state-icon">❓</div>
                 <h3>No FAQ questions</h3>
               </div>
             ) : (
               <div className="date-list">
-                {Object.entries(getAllFAQs()).map(([faqId, faq]) => (
-                  <div key={faqId} className="question-card" draggable={false}>
-                    <div className="drag-handle" style={{ visibility: 'hidden' }} />
-                    <div className="question-card-left">
-                      <a
-                        href={faq.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="question-number"
-                        title={faq.title || `Search problem ${faq.number} on LeetCode`}
-                      >
-                        <span className="question-hash">#</span>{faq.number}
-                        {faq.difficulty && (
-                          <span className={`difficulty-badge difficulty-badge--${faq.difficulty.toLowerCase()}`}>
-                            {faq.difficulty}
-                          </span>
-                        )}
-                        <ExternalLinkIcon />
-                      </a>
-                      {faq.title && (
-                        <p className="question-title">{faq.title}</p>
+                {Object.entries(getAllFAQs()).map(([company, questions]) => {
+                  const isCollapsed = collapsedCompanies.has(company)
+                  const count = questions.length
+                  return (
+                    <div key={company} className="faq-company-section">
+                      <button className="date-section-header" onClick={() => toggleCompany(company)}>
+                        <div className="date-section-header-left">
+                          <span className={`date-section-chevron ${!isCollapsed ? 'open' : ''}`}>›</span>
+                          <span className="faq-company-name">{company}</span>
+                        </div>
+                        <span className="date-section-count">{count} Q{count !== 1 ? 's' : ''}</span>
+                      </button>
+
+                      {!isCollapsed && (
+                        <div className="faq-company-questions">
+                          {questions.map(faq => (
+                            <div key={faq.id} className="question-card" draggable={false}>
+                              <div className="drag-handle" style={{ visibility: 'hidden' }} />
+                              <div className="question-card-left">
+                                <a
+                                  href={faq.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="question-number"
+                                  title={faq.title || `Search problem ${faq.number} on LeetCode`}
+                                >
+                                  <span className="question-hash">#</span>{faq.number}
+                                  {faq.difficulty && (
+                                    <span className={`difficulty-badge difficulty-badge--${faq.difficulty.toLowerCase()}`}>
+                                      {faq.difficulty}
+                                    </span>
+                                  )}
+                                  <ExternalLinkIcon />
+                                </a>
+                                {faq.title && (
+                                  <p className="question-title">{faq.title}</p>
+                                )}
+                              </div>
+
+                              <div className="question-card-actions">
+                                <button
+                                  className="action-btn action-btn--reschedule"
+                                  title="Schedule to a date with notes"
+                                  onClick={() => setFAQRescheduleTarget({ company, faqId: faq.id })}
+                                >
+                                  <CalendarIcon />
+                                  <span>Reschedule</span>
+                                </button>
+
+                                <button
+                                  className="action-btn action-btn--master"
+                                  title="Mark as mastered"
+                                  onClick={() => handleFAQMaster(company, faq.id)}
+                                >
+                                  <CheckIcon />
+                                  <span>Mastered</span>
+                                </button>
+
+                                <button
+                                  className="action-btn action-btn--delete"
+                                  title="Delete question"
+                                  onClick={() => handleFAQDelete(company, faq.id)}
+                                >
+                                  <TrashIcon />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
-
-                    <div className="question-card-actions">
-                      <button
-                        className="action-btn action-btn--reschedule"
-                        title="Schedule to a date with notes"
-                        onClick={() => setFAQRescheduleTarget(faqId)}
-                      >
-                        <CalendarIcon />
-                        <span>Reschedule</span>
-                      </button>
-
-                      <button
-                        className="action-btn action-btn--master"
-                        title="Mark as mastered"
-                        onClick={() => handleFAQMaster(faqId)}
-                      >
-                        <CheckIcon />
-                        <span>Mastered</span>
-                      </button>
-
-                      <button
-                        className="action-btn action-btn--delete"
-                        title="Delete question"
-                        onClick={() => handleFAQDelete(faqId)}
-                      >
-                        <TrashIcon />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </div>
@@ -480,8 +513,9 @@ function Dashboard({ user, onLogout }) {
       )}
       {faqRescheduleTarget && (
         <FAQRescheduleModal
-          faqId={faqRescheduleTarget}
-          faq={getAllFAQs()[faqRescheduleTarget]}
+          company={faqRescheduleTarget.company}
+          faqId={faqRescheduleTarget.faqId}
+          faq={getAllFAQs()[faqRescheduleTarget.company]?.find(f => String(f.id) === String(faqRescheduleTarget.faqId))}
           onClose={() => setFAQRescheduleTarget(null)}
           onSubmit={handleFAQReschedule}
         />
@@ -557,7 +591,7 @@ function TrashIcon() {
 
 /* ── Modal Components ───────────────────────────── */
 
-function FAQRescheduleModal({ faqId, faq, onClose, onSubmit }) {
+function FAQRescheduleModal({ company, faqId, faq, onClose, onSubmit }) {
   const [date, setDate] = useState('')
   const [notes, setNotes] = useState(faq?.notes || '')
   const [error, setError] = useState('')
@@ -568,7 +602,7 @@ function FAQRescheduleModal({ faqId, faq, onClose, onSubmit }) {
       setError('Please pick a date.')
       return
     }
-    onSubmit(faqId, date, notes)
+    onSubmit(company, faqId, date, notes)
   }
 
   return (

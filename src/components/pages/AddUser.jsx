@@ -1,23 +1,22 @@
 import { useState, useEffect } from 'react'
+import { supabase } from '../../lib/supabase.js'
 import './AddUser.css'
 
 function AddUser() {
-  // ── Shared ─────────────────────────────────────────────────────────────────
   const [userNames, setUserNames]   = useState([])
   const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
-    fetch('/api/data')
-      .then(r => r.json())
-      .then(d => setUserNames(d.users?.map(u => u.name) ?? []))
+    supabase.from('users').select('name').order('name')
+      .then(({ data }) => setUserNames(data?.map(u => u.name) ?? []))
       .catch(() => {})
   }, [refreshKey])
 
   // ── Add user ───────────────────────────────────────────────────────────────
-  const [name, setName]             = useState('')
-  const [passcode, setPasscode]     = useState('')
-  const [addSecret, setAddSecret]   = useState('')
-  const [addStatus, setAddStatus]   = useState(null)
+  const [name, setName]           = useState('')
+  const [passcode, setPasscode]   = useState('')
+  const [addSecret, setAddSecret] = useState('')
+  const [addStatus, setAddStatus] = useState(null)
 
   useEffect(() => {
     if (!addStatus || addStatus === 'loading') return
@@ -28,24 +27,32 @@ function AddUser() {
   const handleAdd = async (e) => {
     e.preventDefault()
     setAddStatus('loading')
-    try {
-      const res = await fetch('/api/add-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), passcode, adminSecret: addSecret }),
-      })
-      const data = await res.json()
-      if (res.ok) {
-        setAddStatus({ success: true, message: `"${data.name}" added. They can now log in.` })
-        setName('')
-        setPasscode('')
-        setAddSecret('')
-        setRefreshKey(k => k + 1)
-      } else {
-        setAddStatus({ success: false, message: data.error || 'Failed to add user.' })
-      }
-    } catch {
-      setAddStatus({ success: false, message: 'Could not connect to the server.' })
+
+    const expectedSecret = import.meta.env.VITE_ADMIN_SECRET || 'admin'
+    if (addSecret !== expectedSecret) {
+      setAddStatus({ success: false, message: 'Invalid admin secret.' })
+      return
+    }
+
+    const trimmedName = name.trim()
+    if (!trimmedName) {
+      setAddStatus({ success: false, message: 'Name is required.' })
+      return
+    }
+    if (!/^\d{4}$/.test(passcode)) {
+      setAddStatus({ success: false, message: 'Passcode must be exactly 4 digits.' })
+      return
+    }
+
+    const { error } = await supabase.from('users').insert({ name: trimmedName, passcode })
+    if (error) {
+      setAddStatus({ success: false, message: error.message || 'Failed to add user.' })
+    } else {
+      setAddStatus({ success: true, message: `"${trimmedName}" added. They can now log in.` })
+      setName('')
+      setPasscode('')
+      setAddSecret('')
+      setRefreshKey(k => k + 1)
     }
   }
 
@@ -61,7 +68,6 @@ function AddUser() {
     return () => clearTimeout(t)
   }, [deleteStatus])
 
-  // keep deleteTarget in sync when the user list changes
   useEffect(() => {
     if (userNames.length > 0 && !userNames.includes(deleteTarget)) {
       setDeleteTarget(userNames[0])
@@ -72,26 +78,23 @@ function AddUser() {
     e.preventDefault()
     if (!confirmName) { setConfirmName(true); return }
 
-    setDeleteStatus('loading')
-    try {
-      const res = await fetch('/api/delete-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: deleteTarget, adminSecret: deleteSecret }),
-      })
-      const data = await res.json()
-      if (res.ok) {
-        setDeleteStatus({ success: true, message: `"${data.name}" removed.` })
-        setDeleteSecret('')
-        setConfirmName(false)
-        setRefreshKey(k => k + 1)
-      } else {
-        setDeleteStatus({ success: false, message: data.error || 'Failed to remove user.' })
-        setConfirmName(false)
-      }
-    } catch {
-      setDeleteStatus({ success: false, message: 'Could not connect to the server.' })
+    const expectedSecret = import.meta.env.VITE_ADMIN_SECRET || 'admin'
+    if (deleteSecret !== expectedSecret) {
+      setDeleteStatus({ success: false, message: 'Invalid admin secret.' })
       setConfirmName(false)
+      return
+    }
+
+    setDeleteStatus('loading')
+    const { error } = await supabase.from('users').delete().eq('name', deleteTarget)
+    if (error) {
+      setDeleteStatus({ success: false, message: error.message || 'Failed to remove user.' })
+      setConfirmName(false)
+    } else {
+      setDeleteStatus({ success: true, message: `"${deleteTarget}" removed.` })
+      setDeleteSecret('')
+      setConfirmName(false)
+      setRefreshKey(k => k + 1)
     }
   }
 
@@ -99,14 +102,12 @@ function AddUser() {
     <div className="add-user-page">
       <div className="add-user-card">
 
-        {/* ── Header ── */}
         <div className="add-user-logo">
           <span className="add-user-logo-icon">⚡</span>
           <h1>User Management</h1>
           <p>Add or remove accounts</p>
         </div>
 
-        {/* ── Add user ── */}
         <section className="au-section">
           <h2 className="au-section-title">Add New User</h2>
           <form onSubmit={handleAdd} className="add-user-form">
@@ -165,10 +166,8 @@ function AddUser() {
           </form>
         </section>
 
-        {/* ── Divider ── */}
         <div className="au-divider" />
 
-        {/* ── Remove user ── */}
         <section className="au-section">
           <h2 className="au-section-title">Remove User</h2>
 
@@ -207,7 +206,7 @@ function AddUser() {
 
               {confirmName && (
                 <p className="au-confirm-warning">
-                  ⚠ This will permanently delete <strong>{deleteTarget}</strong> and all their questions. Click Remove again to confirm.
+                  This will permanently delete {deleteTarget} and all their questions. Click Remove again to confirm.
                 </p>
               )}
 
@@ -222,7 +221,7 @@ function AddUser() {
           )}
         </section>
 
-        <a href="/" className="add-user-back">← Back to Login</a>
+        <a href="/" className="add-user-back">Back to Login</a>
       </div>
     </div>
   )
