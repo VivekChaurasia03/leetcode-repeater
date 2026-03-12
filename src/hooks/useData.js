@@ -54,7 +54,7 @@ export function useData() {
 
   // Returns user data in the same shape Dashboard.jsx expects
   const getUserData = (_userName) => ({
-    questions: questions.map(q => ({
+    questions: questions.filter(q => q.status !== 'dismissed').map(q => ({
       id:            q.id,
       number:        q.number,
       scheduledDate: q.scheduled_date,
@@ -135,8 +135,10 @@ export function useData() {
   // ── FAQ functions ─────────────────────────────────────────────────────────────
 
   const getAllFAQs = () => {
+    const userNumbers = new Set(questions.map(q => q.number))
     const faqs = {}
     for (const faq of faqRows) {
+      if (userNumbers.has(faq.number)) continue
       if (!faqs[faq.company]) faqs[faq.company] = []
       faqs[faq.company].push({
         id:         faq.id,
@@ -150,14 +152,13 @@ export function useData() {
     return faqs
   }
 
-  const _findFAQ = (company, faqId) =>
-    getAllFAQs()[company]?.find(f => String(f.id) === String(faqId))
+  const _findFAQRaw = (faqId) =>
+    faqRows.find(f => String(f.id) === String(faqId))
 
   const rescheduleFAQ = async (_userName, company, faqId, scheduledDate, notes = '') => {
-    const faq = _findFAQ(company, faqId)
+    const faq = _findFAQRaw(faqId)
     if (!faq) return
-    const alreadyExists = questions.some(q => q.number === faq.number)
-    if (!alreadyExists) {
+    if (!questions.some(q => q.number === faq.number)) {
       const { data } = await supabase.from('questions').insert({
         user_id:        userId,
         number:         faq.number,
@@ -172,15 +173,12 @@ export function useData() {
       }).select().single()
       if (data) setQuestions(prev => [...prev, data])
     }
-    setFaqRows(prev => prev.filter(f => f.id !== faq.id))
-    await supabase.from('faqs').delete().eq('id', faq.id)
   }
 
   const masterFAQ = async (_userName, company, faqId) => {
-    const faq = _findFAQ(company, faqId)
+    const faq = _findFAQRaw(faqId)
     if (!faq) return
-    const alreadyExists = questions.some(q => q.number === faq.number)
-    if (!alreadyExists) {
+    if (!questions.some(q => q.number === faq.number)) {
       const { data } = await supabase.from('questions').insert({
         user_id:        userId,
         number:         faq.number,
@@ -195,15 +193,26 @@ export function useData() {
       }).select().single()
       if (data) setQuestions(prev => [...prev, data])
     }
-    setFaqRows(prev => prev.filter(f => f.id !== faq.id))
-    await supabase.from('faqs').delete().eq('id', faq.id)
   }
 
   const deleteFAQ = async (company, faqId) => {
-    const faq = _findFAQ(company, faqId)
+    const faq = _findFAQRaw(faqId)
     if (!faq) return
-    setFaqRows(prev => prev.filter(f => f.id !== faq.id))
-    await supabase.from('faqs').delete().eq('id', faq.id)
+    if (!questions.some(q => q.number === faq.number)) {
+      const { data } = await supabase.from('questions').insert({
+        user_id:        userId,
+        number:         faq.number,
+        scheduled_date: getTodayLocal(),
+        added_date:     getTodayLocal(),
+        status:         'dismissed',
+        title:          faq.title,
+        difficulty:     faq.difficulty,
+        slug:           faq.slug,
+        url:            faq.url,
+        notes:          '',
+      }).select().single()
+      if (data) setQuestions(prev => [...prev, data])
+    }
   }
 
   const saveFAQNotes = async () => {} // no-op: faqs table has no notes column
