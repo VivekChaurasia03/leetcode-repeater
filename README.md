@@ -1,18 +1,19 @@
-# LeetCode Repeater ⚡
+# LeetCode Repeater
 
-A spaced repetition system for algorithm problem-solving. Fail a problem, look up the solution, then schedule it for a future date. When that day arrives, attempt it again and reschedule based on how it went — repeat until it's printed on your brain.
+A personal spaced-repetition tracker for LeetCode problems. Schedule problems for future review, mark them mastered when they stick, and keep everything organised by date.
 
 ---
 
 ## Features
 
 - **Date-grouped schedule** — questions grouped by date, sorted overdue → today → future. Past-due dates glow red, today glows amber.
-- **Drag to reschedule** — grab any question card and drop it onto a different date to move it instantly.
-- **Live LeetCode lookup** — type a problem number and the app fetches the title, difficulty, and tags in real time. Clicking a problem opens it directly on LeetCode.
-- **Per-question actions** — Reschedule to any date, edit the number, mark as Mastered, or delete.
-- **Mastered tab** — a separate grid of problems that are "printed on your brain", with a one-click undo.
-- **Multi-user** — each user logs in with their name + a 4-digit passcode. Add or remove users via `/add-user` (requires admin secret).
-- **Deploys to Netlify** — API endpoints are served by a Netlify Function; data is persisted in Netlify Blobs.
+- **Live LeetCode lookup** — type a problem number and the app fetches the title, difficulty, and tags in real time.
+- **Per-question notes** — attach personal notes to any question.
+- **Mastered tab** — problems you've truly locked in, with one-click undo.
+- **FAQ tab** — company-grouped reference list (Amazon). Schedule or master any FAQ directly into your queue.
+- **Todo tab** — date-linked task list separate from questions.
+- **Multi-user** — each user logs in with their name + 4-digit passcode. Add/remove users at `/add-user`.
+- **Cloud storage** — data lives in [Supabase](https://supabase.com), so it works from any device.
 
 ---
 
@@ -20,50 +21,41 @@ A spaced repetition system for algorithm problem-solving. Fail a problem, look u
 
 ```bash
 npm install
-npm run dev       # starts at http://localhost:3000
+npm run dev   # http://localhost:3000
 ```
 
-Data is read from and written to `data.json` in the project root via a Vite server plugin. No separate backend process needed.
+### Environment variables
 
-The data store starts empty — add your first user via `/add-user` before logging in.
+Create a `.env` file in the project root:
+
+```
+VITE_SUPABASE_URL=https://<your-project>.supabase.co
+VITE_SUPABASE_ANON_KEY=<your-anon-key>
+VITE_ADMIN_SECRET=<your-admin-secret>
+```
 
 ---
 
 ## Adding a user
 
-Navigate to `/add-user` (there's a link at the bottom of the login page).
-
-| Field | Details |
-|-------|---------|
-| Full Name | The name they'll log in with |
-| 4-Digit Passcode | Their personal passcode |
-| Admin Secret | See below |
-
-**Local dev** — the admin secret defaults to `admin` unless you create a `.env` file:
-
-```
-ADMIN_SECRET=your-secret-here
-```
-
-**Netlify** — set `ADMIN_SECRET` in Site Settings → Environment Variables.
+Navigate to `/add-user` (link at the bottom of the login page). Requires the admin secret set in your environment variables.
 
 ---
 
 ## Deploying to Netlify
 
 1. Push this repo to GitHub.
-2. In Netlify: **Add new site → Import an existing project** → pick the repo.
-3. Build settings are already configured in `netlify.toml`:
+2. In Netlify: **Add new site → Import an existing project**.
+3. Build settings are pre-configured in `netlify.toml`:
    - Build command: `npm run build`
    - Publish directory: `dist`
-4. Add the environment variable:
-   - Key: `ADMIN_SECRET`
-   - Value: something only you know
+4. Add environment variables in **Site Settings → Environment Variables**:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+   - `VITE_ADMIN_SECRET`
 5. Deploy.
 
-All `/api/*` requests are handled by `netlify/functions/api.mjs`. Data is stored in **Netlify Blobs** (free, no setup required). On first deploy the store is empty — navigate to `/add-user` to create your first user, then log in.
-
-> **Note:** Local `data.json` and Netlify Blobs are separate stores. Questions added locally stay local; questions added on Netlify stay on Netlify.
+The only Netlify Function in production is `netlify/functions/problem.js`, which proxies the LeetCode GraphQL API to avoid CORS.
 
 ---
 
@@ -73,65 +65,25 @@ All `/api/*` requests are handled by `netlify/functions/api.mjs`. Data is stored
 leetcode_repeater/
 ├── netlify/
 │   └── functions/
-│       └── api.mjs          # Netlify Function — all /api/* routes (Blobs-backed)
+│       └── problem.js        # LeetCode GraphQL proxy (CORS workaround)
 ├── src/
 │   ├── App.jsx               # Login / Dashboard / AddUser routing
 │   ├── index.css             # Global styles + CSS variables
+│   ├── lib/
+│   │   └── supabase.js       # Supabase client singleton
 │   ├── hooks/
-│   │   └── useData.js        # All data operations (fetch, save, add, reschedule…)
+│   │   └── useData.js        # All data operations (Supabase queries)
 │   └── components/
-│       ├── Login.jsx/css     # Name + passcode login
-│       ├── Dashboard.jsx/css # Main view — navbar, date list, mastered tab
-│       ├── DateSection.jsx/css
-│       ├── QuestionCard.jsx/css
-│       ├── AddModal.jsx      # Add question with live LeetCode preview
-│       ├── EditModal.jsx     # Edit number / reschedule date
-│       ├── DatePicker.jsx/css # Custom calendar date picker
-│       ├── Modal.css
-│       ├── AddUser.jsx/css   # /add-user page (add + remove users)
-├── data.json                 # Local data store (dev only)
-├── vite.config.js            # Vite + API plugin (serves /api/* in dev)
-├── netlify.toml              # Build config + SPA catch-all redirect
-└── .env.example              # Copy to .env and set ADMIN_SECRET
+│       ├── common/           # DateSection, QuestionCard, TaskCard, DatePicker
+│       ├── modals/           # AddModal, EditModal, NotesModal, AddTaskModal, EditTaskModal
+│       └── pages/
+│           ├── Login.jsx/css
+│           ├── Dashboard.jsx/css
+│           ├── AddUser.jsx/css
+│           └── FAQView.jsx/css
+├── vite.config.js            # Vite + LeetCode proxy plugin (dev only)
+└── netlify.toml              # Build config + redirects
 ```
-
----
-
-## Data model (`data.json` / Netlify Blobs)
-
-```json
-{
-  "users": [
-    {
-      "name": "Vivek Chaurasia",
-      "passcode": 1234,
-      "questions": [
-        {
-          "id": "uuid",
-          "number": 105,
-          "title": "Construct Binary Tree from Preorder and Inorder Traversal",
-          "difficulty": "Medium",
-          "slug": "construct-binary-tree-from-preorder-and-inorder-traversal",
-          "scheduledDate": "2026-02-24",
-          "addedDate": "2026-02-24",
-          "status": "pending"
-        }
-      ]
-    }
-  ]
-}
-```
-
-`status` is either `"pending"` (active) or `"mastered"`.
-`title`, `difficulty`, and `slug` are optional — populated automatically when the LeetCode lookup succeeds, absent for manually-entered questions.
-
----
-
-## Environment variables
-
-| Variable | Required | Default (dev) | Description |
-|----------|----------|---------------|-------------|
-| `ADMIN_SECRET` | Yes (prod) | `"admin"` | Protects the `/add-user` endpoint |
 
 ---
 
@@ -141,7 +93,6 @@ leetcode_repeater/
 |-------|-----------|
 | Frontend | React 18 + Vite 6 |
 | Styling | Plain CSS with custom properties |
-| Local API | Vite server plugin (Node.js `fs`) |
-| Production API | Netlify Functions v2 |
-| Production storage | Netlify Blobs |
+| Database | Supabase (PostgreSQL) |
 | LeetCode data | LeetCode GraphQL API (server-side proxy) |
+| Hosting | Netlify |

@@ -1,6 +1,6 @@
 import './QuestionCard.css'
 
-function QuestionCard({ question, isDragging, onDragStart, onDragEnd, onEdit, onReschedule, onMarkMastered, onDelete, onNotes }) {
+function QuestionCard({ question, isDragging, onDragStart, onDragEnd, onEdit, onReschedule, onMarkMastered, onDelete }) {
   const url = question.slug
     ? `https://leetcode.com/problems/${question.slug}/`
     : `https://leetcode.com/problemset/?search=${question.number}`
@@ -69,15 +69,6 @@ function QuestionCard({ question, isDragging, onDragStart, onDragEnd, onEdit, on
         </button>
 
         <button
-          className="action-btn action-btn--notes"
-          title="Add or edit notes"
-          onClick={() => onNotes && onNotes(question)}
-        >
-          <NotesIcon />
-          <span>Notes</span>
-        </button>
-
-        <button
           className="action-btn action-btn--delete"
           title="Delete question"
           onClick={() => onDelete(question.id)}
@@ -135,14 +126,6 @@ function CheckIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="20 6 9 17 4 12" />
-    </svg>
-  )
-}
-
-function NotesIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
     </svg>
   )
 }

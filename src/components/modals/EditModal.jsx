@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './Modal.css'
 import DatePicker from '../common/DatePicker'
 
@@ -6,8 +6,36 @@ function EditModal({ question, mode, onClose, onEdit, onReschedule }) {
   const [number, setNumber] = useState(String(question.number))
   const [date, setDate]     = useState(question.scheduledDate)
   const [error, setError]   = useState('')
+  const [problemInfo, setProblemInfo] = useState(null)
 
   const isEdit = mode === 'edit'
+
+  // Fetch problem info when editing and number changes
+  useEffect(() => {
+    if (!isEdit) return
+    
+    const num = parseInt(number, 10)
+    if (!number || isNaN(num) || num < 1 || num > 9999) {
+      setProblemInfo(null)
+      return
+    }
+
+    setProblemInfo('loading')
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/problem/${num}`)
+        if (res.status === 404)      { setProblemInfo('not-found');    return }
+        if (res.status === 429)      { setProblemInfo('rate-limited'); return }
+        if (!res.ok)                 { setProblemInfo('error');        return }
+        const data = await res.json()
+        setProblemInfo(data)
+      } catch {
+        setProblemInfo('error')
+      }
+    }, 600)
+
+    return () => clearTimeout(timer)
+  }, [number, isEdit])
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -17,7 +45,8 @@ function EditModal({ question, mode, onClose, onEdit, onReschedule }) {
         setError('Enter a valid question number between 1 and 9999.')
         return
       }
-      onEdit(question.id, num)
+      const meta = typeof problemInfo === 'object' && problemInfo !== null ? problemInfo : {}
+      onEdit(question.id, num, meta)
     } else {
       if (!date) {
         setError('Please pick a date.')
@@ -59,6 +88,8 @@ function EditModal({ question, mode, onClose, onEdit, onReschedule }) {
             </div>
           )}
 
+          {isEdit && <ProblemPreview info={problemInfo} />}
+
           {error && <p className="form-error">{error}</p>}
 
           <div className="modal-actions">
@@ -73,6 +104,21 @@ function EditModal({ question, mode, onClose, onEdit, onReschedule }) {
       </div>
     </div>
   )
+}
+
+function ProblemPreview({ info }) {
+  if (!info || info === 'loading') return null
+  if (info === 'not-found') return <p className="form-info info--error">Problem not found on LeetCode</p>
+  if (info === 'rate-limited') return <p className="form-info info--warning">LeetCode rate limited — try again in a moment</p>
+  if (info === 'error') return <p className="form-info info--error">Could not reach LeetCode</p>
+  if (typeof info === 'object' && info.title) {
+    return (
+      <div className="form-info info--success">
+        <strong>{info.title}</strong> · <span className={`difficulty-badge difficulty-badge--${info.difficulty?.toLowerCase()}`}>{info.difficulty}</span>
+      </div>
+    )
+  }
+  return null
 }
 
 export default EditModal
