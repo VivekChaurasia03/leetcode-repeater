@@ -277,6 +277,7 @@ function Dashboard({ user, onLogout }) {
                     onReschedule={(q) => setEditTarget({ question: q, mode: 'reschedule' })}
                     onMarkMastered={handleMarkMastered}
                     onDelete={handleDelete}
+                    onNotes={handleNotesOpen}
                   />
                 ))}
               </div>

@@ -46,7 +46,7 @@ function getDueLabel(dateStr) {
   return `in ${Math.abs(diff)} day${Math.abs(diff) !== 1 ? 's' : ''}`
 }
 
-function DateSection({ date, dateType, questions, defaultOpen, draggingId, onDragStart, onDragEnd, onDropQuestion, onEdit, onReschedule, onMarkMastered, onDelete }) {
+function DateSection({ date, dateType, questions, defaultOpen, draggingId, onDragStart, onDragEnd, onDropQuestion, onEdit, onReschedule, onMarkMastered, onDelete, onNotes }) {
   const [open, setOpen]         = useState(defaultOpen)
   const [isDragOver, setIsDragOver] = useState(false)
   const dragCounter = useRef(0)
@@ -120,6 +120,7 @@ function DateSection({ date, dateType, questions, defaultOpen, draggingId, onDra
               onReschedule={onReschedule}
               onMarkMastered={onMarkMastered}
               onDelete={onDelete}
+              onNotes={onNotes}
             />
           ))}
         </div>
